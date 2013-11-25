@@ -1,0 +1,134 @@
+
+<?php
+/** @var $this Mage_Payment_Block_Form */
+
+
+$_form = $this;
+$_code = $_form->getMethodCode();
+$_method = $_form->getMethod();
+$_code=$this->getMethodCode() ?>
+
+<!-- normal form-->
+<ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
+    <!--<li>
+        <label for="<?php echo $_code ?>_check_no" class="required"><em>*</em><?php echo $this->__('Check No#') ?></label>
+        <span class="input-box">
+            <input type="text" title="<?php echo $this->__('Check No#') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_no" name="payment[check_no]" value="<?php echo $this->htmlEscape($this->getInfoData('check_no')) ?>" />
+        </span>
+    </li>
+    <li>
+        <label for="<?php echo $_code ?>_check_date" class="required"><em>*</em><?php echo $this->__('Check Date:') ?></label>
+        <span class="input-box">
+            <input type="text" title="<?php echo $this->__('Check Date:') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_date" name="payment[check_date]" value="<?php echo $this->htmlEscape($this->getInfoData('check_date')) ?>" />
+        </span>-->
+        <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
+        <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
+    <!--</li>-->c
+
+    <form id='co-directpost-form' action="#" method='post'>
+        <fieldset>
+            <legend>Billing</legend>
+            <!--
+              The lack of 'name' attributes on these inputs prevents
+              the browser from submitting them to your server
+            -->
+            <label for='address-line1'>Address 1</label>
+            <input id='address-line1' value="Address 1" />
+            <label for='address-line2'>Address 2</label>
+            <input id='address-line2' value="Address 2" />
+            <label for='address-city'>City</label>
+            <input id='address-city' value="city" />
+            <label for='address-state'>State</label>
+            <input id='address-state'  value="state"/>
+            <label for='address-postcode'>Postcode</label>
+            <input id='address-postcode'  value="2000" />
+            <label for='address-country'>Country</label>
+            <input id='address-country'   value="aus" />
+
+        </fieldset>
+        <fieldset>
+            <legend>Payment</legend>
+            <!--
+              The lack of 'name' attributes on these inputs prevents
+              the browser from submitting them to your server
+            -->
+            <label for='cc-number'>Credit Card Number</label>
+            <input id='cc-number' type='text'   value="5520000000000000"/>
+            <label for='cc-name'>Name on Card</label>
+            <input id='cc-name' type='text' value="a owner" />
+            <label for='cc-expiry-month'>Expiry Month</label>
+            <input id='cc-expiry-month' value="01" />
+            <label for='cc-expiry-year'>Expiry Year</label>
+            <input id='cc-expiry-year' value="2015" />
+            <label for='cc-cvc'>CVC</label>
+            <input id='cc-cvc' value="123" />
+        </fieldset>
+        <input type='submit' value='Pay now' id='submitbtn' />
+    </form>
+</ul>
+<div>
+    <?php echo $this->getMethod()->getConfigData('message');?>
+</div>
+
+<script type="text/javascript">
+
+        //alert('loaded');
+
+        // Firstly, set the publishable key
+        //
+        // This can either be your live publishable key or test publishable key, depending
+        // on which script you included above
+
+        // TODO get this from the database -> admin field
+        Pin.setPublishableKey('pk_UqqRtRVxPCMWpE30cwuGPA');
+
+        // Now we can call Pin.js on form submission to retrieve a card token and submit
+        // it to the server
+
+        $('co-directpost-form').observe('submit', function(e) {
+
+            alert('submit');
+            e.stop();
+
+            // Fetch details required for the createToken call to Pin Payments
+            var card = {
+                number: $('cc-number').value,
+                name: $('cc-name').value,
+                expiry_month: $('cc-expiry-month').value,
+                expiry_year: $('cc-expiry-year').value,
+                cvc: $('cc-cvc').value,
+                address_line1: $('address-line1').value,
+                address_line2: $('address-line2').value,
+                address_city: $('address-city').value,
+                address_state: $('address-state').value,
+                address_postcode: $('address-postcode').value,
+                address_country: $('address-country').value
+            };
+
+            // Request a token for the card from Pin Payments
+            Pin.createToken(card, handlePinResponse);
+        });
+
+        function handlePinResponse(response) {
+
+            if (response.response) {
+
+                var card = $('<?php echo $_code ?>_card_token');
+                card.value = response.response.token;
+
+                var ip = $('<?php echo $_code ?>_ip_address');
+                ip.value = response.ip_address;
+
+
+                // submit the hidden form
+                //$('hiddenform').submit();
+                console.log(response.response.token);
+
+            } else {
+                alert(response.error_description);
+            }
+        };
+
+        var inputs = $('co-directpost-form').getInputs();
+        for(var i = 0; i<inputs.length;i++) {inputs[i].disabled = false;}
+</script>

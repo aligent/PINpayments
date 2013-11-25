@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<config>
+    <modules>
+        <Dwyera_Pinpay>
+            <version>0.1.0</version>
+        </Dwyera_Pinpay>
+    </modules>
+
+
+    <global>
+
+        <fieldsets>
+            <sales_convert_quote_payment>
+                <check_no>
+                    <to_order_payment>*</to_order_payment>
+                </check_no>
+                <check_date>
+                    <to_order_payment>*</to_order_payment>
+                </check_date>
+            </sales_convert_quote_payment>
+        </fieldsets>
+
+        <blocks>
+            <pinpay>
+                <class>Dwyera_Pinpay_Block</class>
+            </pinpay>
+        </blocks>
+
+
+        <models>
+            <pinpay>
+                <class>Dwyera_Pinpay_Model</class>
+            </pinpay>
+        </models>
+
+        <!-- declare resource setup for new module -->
+        <resources>
+            <!-- resource identifier -->
+            <pinpay_setup>
+                <!-- specify that this resource is a setup resource and used for upgrades -->
+                <setup>
+                    <!-- which module to look for install/upgrade files in -->
+                    <module>Dwyera_Pinpay</module>
+                </setup>
+                <!-- specify database connection for this resource -->
+                <connection>
+                    <!-- do not create new connection, use predefined core setup connection -->
+                    <use>core_setup</use>
+                </connection>
+            </pinpay_setup>
+            <pinpay_write>
+                <connection>
+                    <use>core_write</use>
+                </connection>
+            </pinpay_write>
+            <pinpay_read>
+                <connection>
+                    <use>core_read</use>
+                </connection>
+            </pinpay_read>
+        </resources>
+    </global>
+
+    <frontend>
+
+        <layout>
+            <updates>
+                <pinpay>
+                    <file>pinpay.xml</file>
+                </pinpay>
+            </updates>
+        </layout>
+    </frontend>
+
+    <!-- declare default configuration values for this module -->
+    <default>
+        <!-- 'payment' configuration section (tab) -->
+        <payment>
+            <!-- 'pinpay' configuration group (fieldset) -->
+            <pinpay>
+                <!-- by default this payment method is inactive -->
+                <active>0</active>
+                <!-- model to handle logic for this payment method -->
+                <model>pinpay/paymentMethod</model>
+                <!-- order status for new orders paid by this payment method -->
+                <order_status>pending</order_status>
+                <!-- default title for payment checkout page and order view page -->
+                <title>Credit Card (PinPayment)</title>
+
+                <cctypes>AE,VI,MC,DI</cctypes>
+                <payment_action>authorize</payment_action>
+                <allowspecific>0</allowspecific>
+            </pinpay>
+        </payment>
+    </default>
+
+</config> 
