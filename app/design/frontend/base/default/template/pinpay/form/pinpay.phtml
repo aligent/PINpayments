@@ -2,7 +2,6 @@
 <?php
 /** @var $this Mage_Payment_Block_Form */
 
-
 $_form = $this;
 $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
@@ -23,7 +22,7 @@ $_code=$this->getMethodCode() ?>
         </span>-->
         <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
         <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
-    <!--</li>-->c
+    <!--</li>-->
 
     <form id='co-directpost-form' action="#" method='post'>
         <fieldset>

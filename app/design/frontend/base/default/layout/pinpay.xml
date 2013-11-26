@@ -7,14 +7,13 @@
             </action>
         </reference>
         <reference name="content">
-            <block type="pinpay/index" name="pinpay_index" template="pinpay/index.phtml"/>
+            <block type="pinpay/index" name="pinpay_index" template="pinpay/form/pinpay.phtml"/>
         </reference>
     </pinpay_index_index>-->
     <checkout_onepage_index>
         <reference name="head">
             <action method="addJs">
-                <!--<file>mage/directpost.js</file>-->
-                <script>pinpay/pin.js</script>
+                <script>pinpay/pin.test.js</script>
             </action>
         </reference>
     </checkout_onepage_index>

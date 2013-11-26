@@ -62,7 +62,6 @@
     </global>
 
     <frontend>
-
         <layout>
             <updates>
                 <pinpay>
@@ -70,6 +69,17 @@
                 </pinpay>
             </updates>
         </layout>
+
+            <routers>
+                <pinpay>
+                    <use>standard</use>
+                    <args>
+                        <module>Dwyera_Pinpay</module>
+                        <frontName>pinpay</frontName>
+                    </args>
+                </pinpay>
+            </routers>
+
     </frontend>
 
     <!-- declare default configuration values for this module -->
