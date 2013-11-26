@@ -21,6 +21,9 @@ class Dwyera_Pinpay_IndexController extends Mage_Core_Controller_Front_Action{
 //    }
 
     public function TestAction() {
+
+        echo 'test';
+        die('test');
         $this->loadLayout();
 
         $block = $this->getLayout()->createBlock('pinpay/form');

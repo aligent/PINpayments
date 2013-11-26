@@ -13,8 +13,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     //protected $_infoBlockType = 'pinpay/info';
 
+    private static $logFile = 'dwyera_pinpay_controller.log';
+
     public function assignData($data)
     {
+        Mage::log('assignData', Zend_Log::ERR, self::$logFile, true);
 
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
@@ -84,12 +87,13 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      *
      * @param  Mage_Payment_Model_Info $payment
      * @param  decimal $amount
-     * @return Mage_Paygate_Model_Authorizenet
+     * @return Dwyera_Pinpay_Model_PaymentMethod
      */
     public function authorize(Varien_Object $payment, $amount)
     {
-        Mage::log('start auth', Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
-        //Mage::log($amount, Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
+
+        Mage::log('authorize', Zend_Log::ERR, self::$logFile, true);
+
         if ($amount <= 0) {
             Mage::log('exp amt lt 0', Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));

@@ -7,9 +7,10 @@ $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
 $_code=$this->getMethodCode() ?>
 
+
 <!-- normal form-->
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
-    <!--<li>
+    <li>
         <label for="<?php echo $_code ?>_check_no" class="required"><em>*</em><?php echo $this->__('Check No#') ?></label>
         <span class="input-box">
             <input type="text" title="<?php echo $this->__('Check No#') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_no" name="payment[check_no]" value="<?php echo $this->htmlEscape($this->getInfoData('check_no')) ?>" />
@@ -19,10 +20,10 @@ $_code=$this->getMethodCode() ?>
         <label for="<?php echo $_code ?>_check_date" class="required"><em>*</em><?php echo $this->__('Check Date:') ?></label>
         <span class="input-box">
             <input type="text" title="<?php echo $this->__('Check Date:') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_date" name="payment[check_date]" value="<?php echo $this->htmlEscape($this->getInfoData('check_date')) ?>" />
-        </span>-->
+        </span>
         <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
         <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
-    <!--</li>-->
+    </li>
 
     <form id='co-directpost-form' action="#" method='post'>
         <fieldset>
