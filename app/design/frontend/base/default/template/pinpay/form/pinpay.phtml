@@ -1,16 +1,17 @@
 
 <?php
-/** @var $this Mage_Payment_Block_Form */
+/** @var $this Dwyera_Pinpay_Block_Form */
 
 $_form = $this;
 $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
-$_code=$this->getMethodCode() ?>
+
+?>
 
 
 <!-- normal form-->
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
-    <li>
+    <!--<li>
         <label for="<?php echo $_code ?>_check_no" class="required"><em>*</em><?php echo $this->__('Check No#') ?></label>
         <span class="input-box">
             <input type="text" title="<?php echo $this->__('Check No#') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_no" name="payment[check_no]" value="<?php echo $this->htmlEscape($this->getInfoData('check_no')) ?>" />
@@ -20,18 +21,14 @@ $_code=$this->getMethodCode() ?>
         <label for="<?php echo $_code ?>_check_date" class="required"><em>*</em><?php echo $this->__('Check Date:') ?></label>
         <span class="input-box">
             <input type="text" title="<?php echo $this->__('Check Date:') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_date" name="payment[check_date]" value="<?php echo $this->htmlEscape($this->getInfoData('check_date')) ?>" />
-        </span>
+        </span>-->
         <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
         <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
-    </li>
+    <!--</li>-->
 
     <form id='co-directpost-form' action="#" method='post'>
-        <fieldset>
+        <!--<fieldset>
             <legend>Billing</legend>
-            <!--
-              The lack of 'name' attributes on these inputs prevents
-              the browser from submitting them to your server
-            -->
             <label for='address-line1'>Address 1</label>
             <input id='address-line1' value="Address 1" />
             <label for='address-line2'>Address 2</label>
@@ -45,15 +42,11 @@ $_code=$this->getMethodCode() ?>
             <label for='address-country'>Country</label>
             <input id='address-country'   value="aus" />
 
-        </fieldset>
+        </fieldset>-->
         <fieldset>
             <legend>Payment</legend>
-            <!--
-              The lack of 'name' attributes on these inputs prevents
-              the browser from submitting them to your server
-            -->
             <label for='cc-number'>Credit Card Number</label>
-            <input id='cc-number' type='text'   value="5520000000000000"/>
+            <input id='cc-number' type='text' value="5520000000000000"/>
             <label for='cc-name'>Name on Card</label>
             <input id='cc-name' type='text' value="a owner" />
             <label for='cc-expiry-month'>Expiry Month</label>
@@ -72,15 +65,12 @@ $_code=$this->getMethodCode() ?>
 
 <script type="text/javascript">
 
-        //alert('loaded');
-
         // Firstly, set the publishable key
         //
         // This can either be your live publishable key or test publishable key, depending
         // on which script you included above
 
-        // TODO get this from the database -> admin field
-        Pin.setPublishableKey('pk_UqqRtRVxPCMWpE30cwuGPA');
+        Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
 
         // Now we can call Pin.js on form submission to retrieve a card token and submit
         // it to the server
