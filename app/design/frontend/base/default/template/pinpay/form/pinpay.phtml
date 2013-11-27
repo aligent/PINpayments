@@ -11,24 +11,12 @@ $_method = $_form->getMethod();
 
 <!-- normal form-->
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
-    <!--<li>
-        <label for="<?php echo $_code ?>_check_no" class="required"><em>*</em><?php echo $this->__('Check No#') ?></label>
-        <span class="input-box">
-            <input type="text" title="<?php echo $this->__('Check No#') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_no" name="payment[check_no]" value="<?php echo $this->htmlEscape($this->getInfoData('check_no')) ?>" />
-        </span>
-    </li>
-    <li>
-        <label for="<?php echo $_code ?>_check_date" class="required"><em>*</em><?php echo $this->__('Check Date:') ?></label>
-        <span class="input-box">
-            <input type="text" title="<?php echo $this->__('Check Date:') ?>" class="input-text required-entry" id="<?php echo $_code ?>_check_date" name="payment[check_date]" value="<?php echo $this->htmlEscape($this->getInfoData('check_date')) ?>" />
-        </span>-->
-        <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
-        <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
-    <!--</li>-->
+    <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
+    <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
 
     <form id='co-directpost-form' action="#" method='post'>
-        <!--<fieldset>
-            <legend>Billing</legend>
+        <fieldset>
+            <legend>Billing details of Card Holder</legend>
             <label for='address-line1'>Address 1</label>
             <input id='address-line1' value="Address 1" />
             <label for='address-line2'>Address 2</label>
@@ -42,7 +30,7 @@ $_method = $_form->getMethod();
             <label for='address-country'>Country</label>
             <input id='address-country'   value="aus" />
 
-        </fieldset>-->
+        </fieldset>
         <fieldset>
             <legend>Payment</legend>
             <label for='cc-number'>Credit Card Number</label>
@@ -109,9 +97,6 @@ $_method = $_form->getMethod();
                 var ip = $('<?php echo $_code ?>_ip_address');
                 ip.value = response.ip_address;
 
-
-                // submit the hidden form
-                //$('hiddenform').submit();
                 console.log(response.response.token);
 
             } else {
