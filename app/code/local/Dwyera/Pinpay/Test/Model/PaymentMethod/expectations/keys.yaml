@@ -1,0 +1,5 @@
+keys:
+  publishable_key: "publish"
+  secret_key: "secret"
+empty:
+  empty: null

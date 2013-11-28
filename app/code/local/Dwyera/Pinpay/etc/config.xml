@@ -103,10 +103,12 @@
                 <order_status>pending</order_status>
                 <!-- default title for payment checkout page and order view page -->
                 <title>Credit Card (PinPayment)</title>
-
-                <cctypes>AE,VI,MC,DI</cctypes>
+                <production_url>https://api.pin.net.au/1</production_url>
+                <testing_url>https://test-api.pin.net.au/1</testing_url>
+                <test>1</test>
+                <!--<cctypes>AE,VI,MC,DI</cctypes>
                 <payment_action>authorize</payment_action>
-                <allowspecific>0</allowspecific>
+                <allowspecific>0</allowspecific>-->
             </pinpay>
         </payment>
     </default>

@@ -1,0 +1,3 @@
+config:
+  default/payment/pinpay/publishable_key: "publish"
+  default/payment/pinpay/secret_key: "secret"

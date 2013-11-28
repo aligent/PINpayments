@@ -88,11 +88,18 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     /**
      * Gets the PinPayments secret key from the admin config
-     * @return string Secret Key
+     * @return string Secret Key or empty string if not set
      */
     public function getSecretKey() {
-        //TODO replace with call to admin preferences
-        return "xmAoHTvJ4GwqnwQdA_JAbQ";
+        return Mage::getStoreConfig('payment/pinpay/secret_key');
+    }
+
+    /**
+     * Gets the PinPayments publishable key from the admin config
+     * @return string Publishable Key or empty string if not set
+     */
+    public function getPublishableKey() {
+        return Mage::getStoreConfig('payment/pinpay/publishable_key');
     }
 
     /**
