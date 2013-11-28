@@ -15,18 +15,6 @@
     </phpunit>
 
     <global>
-
-        <fieldsets>
-            <sales_convert_quote_payment>
-                <check_no>
-                    <to_order_payment>*</to_order_payment>
-                </check_no>
-                <check_date>
-                    <to_order_payment>*</to_order_payment>
-                </check_date>
-            </sales_convert_quote_payment>
-        </fieldsets>
-
         <blocks>
             <pinpay>
                 <class>Dwyera_Pinpay_Block</class>
