@@ -6,6 +6,13 @@
         </Dwyera_Pinpay>
     </modules>
 
+    <phpunit>
+        <suite>
+            <modules>
+                <Dwyera_Pinpay/>
+            </modules>
+        </suite>
+    </phpunit>
 
     <global>
 
@@ -70,15 +77,15 @@
             </updates>
         </layout>
 
-            <routers>
-                <pinpay>
-                    <use>standard</use>
-                    <args>
-                        <module>Dwyera_Pinpay</module>
-                        <frontName>pinpay</frontName>
-                    </args>
-                </pinpay>
-            </routers>
+        <routers>
+            <pinpay>
+                <use>standard</use>
+                <args>
+                    <module>Dwyera_Pinpay</module>
+                    <frontName>pinpay</frontName>
+                </args>
+            </pinpay>
+        </routers>
 
     </frontend>
 

@@ -1,0 +1,13 @@
+This module contains EComDev_PHPUnit tests.
+
+To run these tests ensure you do the following:
+
+* install EComDev_PHPUnit module
+* execute the following from the shell directory to configure your app/etc/local.xml.phpunit.
+** php ecomdev-phpunit.php -a magento-config --db-name TEST_DB_NAME --base-url http://BASE_URL/ --db-host HOST --db-user USER --db-pwd PASS
+* Ensure you have a phpunit.xml file in the root of your Magento installation.  See EComDev_PHPUnit documentation for help.
+
+You can then execute all tests by running the phpunit command from the root of your Magento installation.
+
+
+More information on configuring tests available at https://docs.google.com/a/aligent.com.au/document/d/10A97dc-m9fFtD1Ldd0FjBiMDeJYlZzMVo0AYtLLJMrI/edit?usp=sharing
