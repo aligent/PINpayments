@@ -56,24 +56,26 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
-        $email = '';
+        /*$email = '';
 
         if (Mage::getSingleton('customer/session')->isLoggedIn()) {
-            /* Get the customer data */
             $customer = Mage::getSingleton('customer/session')->getCustomer();
             $email = $customer->getEmail();
-        }
+        }*/
 
-        Mage::log("1", Zend_Log::DEBUG, self::$logFile, true);
-        $request = Mage::getModel('pinpay/request');
+        $request = $this->_buildRequest($payment, $amount); /*Mage::getModel('pinpay/request');
         $request = $request->setEmail($email)->setAmount($amount)->
             setToken($payment->getAdditionalInformation('card_token'))->
-            setCustomerIp($payment->getAdditionalInformation('ip_address'));
-        $this->_place($payment, $amount, self::REQUEST_TYPE_AUTH_ONLY, $request);
+            setCustomerIp($payment->getAdditionalInformation('ip_address'));*/
+        $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
 
-        //TODO change status of order from processing to ...
-        /** @var Mage_Payment_Model_Info $payment */
-        $payment;
+        //TODO change status of order from processing to complete
+        /** @var Mage_Sales_Model_Order_Payment $payment */
+        /*$order = $payment->getOrder();
+        /*$order->setData('state', $order::STATE_COMPLETE);
+        //$order->setState($order::STATE_CLOSED, true);
+        $order->save();*/
+
         return $this;
     }
 
@@ -110,20 +112,36 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
     }
 
+    protected function _buildRequest($payment, $amount)
+    {
+        $email = '';
+        if (Mage::getSingleton('customer/session')->isLoggedIn()) {
+            /* Get the customer data */
+            $customer = Mage::getSingleton('customer/session')->getCustomer();
+            $email = $customer->getEmail();
+        }
+
+        $request = Mage::getModel('pinpay/request')->setEmail($email)->
+            setAmount($amount)->
+            setDescription("Quote #:".$payment->getOrder()->getRealOrderId())->
+            setToken($payment->getAdditionalInformation('card_token'))->
+            setCustomerIp($payment->getAdditionalInformation('ip_address'));
+        return $request;
+    }
+
     /**
      * Send request with new payment to PinPayments gateway
      *
      * @param Mage_Payment_Model_Info $payment
-     * @param decimal $amount
      * @param string $requestType
      * @param Dwyera_Pinpay_Model_Request
      * @return Mage_Paygate_Model_Authorizenet
      * @throws Mage_Core_Exception
      * @throws InvalidArgumentException
      */
-    protected function _place($payment, $amount, $requestType, $request)
+    protected function _place($payment, $requestType, $request)
     {
-        $payment->setAmount($amount);
+        $payment->setAmount($request->getAmount());
 
         // Simply verify that a valid request type has been sent. Only support authorize at the moment.
         switch ($requestType) {
@@ -174,8 +192,9 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             case self::REQUEST_TYPE_AUTH_ONLY:
                 $url .= "charges";
                 $client->setMethod($client::POST);
+                //TODO iterate over all params in $request and add them as parameters
                 $client->setParameterPost("email", $request->getEmail());
-                $client->setParameterPost("description", 'description');
+                $client->setParameterPost("description", $request->getDescription());
                 $client->setParameterPost("amount", $request->getAmountInCents());
                 $client->setParameterPost("ip_address", $request->getIp());
                 $client->setParameterPost("card_token", $request->getToken());
