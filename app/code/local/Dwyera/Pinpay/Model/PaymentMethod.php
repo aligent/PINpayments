@@ -3,7 +3,11 @@
 class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstract
 {
 
-    const REQUEST_TYPE_AUTH_ONLY    = 'AUTH_ONLY';
+    const REQUEST_TYPE_AUTH_ONLY = 'AUTH_ONLY';
+
+    const MAX_REDIRECTS = 0;
+
+    const TIMEOUT = 30;
 
     /**
      * unique internal payment method identifier
@@ -27,22 +31,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
-//        $email = '';
-//        if (Mage::getSingleton('customer/session')->isLoggedIn()) {
-//
-//            /* Get the customer data */
-//            $customer = Mage::getSingleton('customer/session')->getCustomer();
-//            /* Get the customer's full name */
-//            $fullname = $customer->getName();
-//            /* Get the customer's first name */
-//            $firstname = $customer->getFirstname();
-//            /* Get the customer's last name */
-//            $lastname = $customer->getLastname();
-//            /* Get the customer's email address */
-//            $email = $customer->getEmail();
-//
-//        }
-
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
@@ -53,8 +41,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Send authorize request to gateway
      *
-     * @param  Varien_Object $payment
-     * @param  decimal $amount
+     * @param  Mage_Payment_Model_Info $payment
+     * @param  float $amount
      * @return Dwyera_Pinpay_Model_PaymentMethod
      */
     public function authorize(Varien_Object $payment, $amount)
@@ -83,6 +71,9 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             setCustomerIp($payment->getAdditionalInformation('ip_address'));
         $this->_place($payment, $amount, self::REQUEST_TYPE_AUTH_ONLY, $request);
 
+        //TODO change status of order from processing to ...
+        /** @var Mage_Payment_Model_Info $payment */
+        $payment;
         return $this;
     }
 
@@ -90,7 +81,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * Gets the PinPayments secret key from the admin config
      * @return string Secret Key or empty string if not set
      */
-    public function getSecretKey() {
+    public function getSecretKey()
+    {
         return Mage::getStoreConfig('payment/pinpay/secret_key');
     }
 
@@ -98,8 +90,24 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * Gets the PinPayments publishable key from the admin config
      * @return string Publishable Key or empty string if not set
      */
-    public function getPublishableKey() {
+    public function getPublishableKey()
+    {
         return Mage::getStoreConfig('payment/pinpay/publishable_key');
+    }
+
+    /**
+     * Returns the correct service URL depending on whether testing mode is enabled
+     *
+     * @return string The service URL, or empty string if not defined
+     */
+    public function getServiceURL()
+    {
+        $isTesting = Mage::getStoreConfig('payment/pinpay/test');
+        if ($isTesting == true) {
+            return Mage::getStoreConfig('payment/pinpay/testing_url');
+        } else {
+            return Mage::getStoreConfig('payment/pinpay/production_url');
+        }
     }
 
     /**
@@ -113,58 +121,95 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * @throws Mage_Core_Exception
      * @throws InvalidArgumentException
      */
-    protected function _place($payment, $amount, $requestType, $request) {
-
+    protected function _place($payment, $amount, $requestType, $request)
+    {
         $payment->setAmount($amount);
-        switch($requestType) {
+
+        // Simply verify that a valid request type has been sent. Only support authorize at the moment.
+        switch ($requestType) {
             case self::REQUEST_TYPE_AUTH_ONLY:
-                $this->_postRequest($request, $requestType);
                 break;
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
+        }
+        $httpResponse = $this->_postRequest($request, $requestType);
+        // wrap the gateway response in the pinpay/result model
+        /** @var Dwyera_Pinpay_Model_Result $result */
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        switch ($result->getGatewayResponseStatus()) {
+            case $result::RESPONSE_CODE_APPROVED:
+                return true;
+            case $result::RESPONSE_CODE_DECLINED:
+            default:
+                Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile, true);
+                Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription())));
         }
     }
 
     /**
      * @param Dwyera_Pinpay_Model_Request $request
      * @param $requestType
-     * @return bool
+     * @throws InvalidArgumentException
+     * @throws Mage_Core_Exception
+     * @return Zend_Http_Response
      */
     protected function _postRequest(Dwyera_Pinpay_Model_Request $request, $requestType)
     {
         // TODO This method should be made more generic to support the various calls to PinPayments
+
         $client = new Varien_Http_Client();
 
-        //$uri = $this->getConfigData('cgi_url');
-        // TODO Get/Store this URL in database as an admin config option
-        $client->setUri("https://test-api.pin.net.au/1/charges");
-        $client->setConfig(array(
-            'maxredirects' => 0,
-            'timeout' => 30,
-        ));
+        $url = $this->getServiceURL();
+        // Ensure URL has trailing slash
+        if (substr($url, -1) !== "/") {
+            $url .= "/";
+        }
 
+        $client->setConfig($this->_getHttpConfig());
         $client->setAuth($this->getSecretKey(), '');
-        $client->setMethod($client::POST);
-        $client->setParameterPost("email", $request->getEmail());
-        $client->setParameterPost("description", 'description');
-        $client->setParameterPost("amount", $request->getAmountInCents());
-        $client->setParameterPost("ip_address", $request->getIp());
-        $client->setParameterPost("card_token", $request->getToken());
 
-        Mage::log("request: $request->getData()", Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
 
+        switch ($requestType) {
+            case self::REQUEST_TYPE_AUTH_ONLY:
+                $url .= "charges";
+                $client->setMethod($client::POST);
+                $client->setParameterPost("email", $request->getEmail());
+                $client->setParameterPost("description", 'description');
+                $client->setParameterPost("amount", $request->getAmountInCents());
+                $client->setParameterPost("ip_address", $request->getIp());
+                $client->setParameterPost("card_token", $request->getToken());
+                break;
+            default:
+                throw new InvalidArgumentException("Invalid request type of $requestType");
+        }
+
+
+        Mage::log("Request: $request->getData()", Zend_Log::DEBUG, self::$logFile, true);
+
+        /** @var $response Zend_Http_Response */
+        $response = null;
         try {
+            $client->setUri($url);
             $response = $client->request();
             $resStr = $response->asString();
-            Mage::log('response' . $resStr . ':' . $response->getMessage() . ':' . $response->getStatus(), Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
+            Mage::log('response' . $resStr . ':' . $response->getMessage() . ':' . $response->getStatus(), Zend_Log::DEBUG, self::$logFile, true);
         } catch (Exception $e) {
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
-            Mage::throwException((Mage::helper('pinpay')->__($e->getMessage())));
+
+            Mage::throwException((Mage::helper('pinpay')->__("Error in payment gateway")));
         }
 
-        return true;
+        return $response;
+    }
 
+    private function _getHttpConfig()
+    {
+        return array(
+            'maxredirects' => self::MAX_REDIRECTS,
+            'timeout' => self::TIMEOUT,
+        );
     }
 
     /**
@@ -195,7 +240,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Can void transactions online?
      */
-    protected $_canVoid  = false;
+    protected $_canVoid = false;
 
     /**
      * Can use this payment method in administration panel?

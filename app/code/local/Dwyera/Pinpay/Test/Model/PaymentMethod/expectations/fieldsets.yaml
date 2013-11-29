@@ -1,5 +1,8 @@
 keys:
   publishable_key: "publish"
   secret_key: "secret"
+urls:
+  production_url: "prod"
+  testing_url: "test"
 empty:
   empty: null

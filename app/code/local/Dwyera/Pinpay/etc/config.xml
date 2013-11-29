@@ -21,6 +21,11 @@
             </pinpay>
         </blocks>
 
+        <helpers>
+            <pinpay>
+                <class>Dwyera_Pinpay_Helper</class>
+            </pinpay>
+        </helpers>
 
         <models>
             <pinpay>
@@ -94,8 +99,9 @@
                 <production_url>https://api.pin.net.au/1</production_url>
                 <testing_url>https://test-api.pin.net.au/1</testing_url>
                 <test>1</test>
-                <!--<cctypes>AE,VI,MC,DI</cctypes>
                 <payment_action>authorize</payment_action>
+                <!--<cctypes>AE,VI,MC,DI</cctypes>
+
                 <allowspecific>0</allowspecific>-->
             </pinpay>
         </payment>

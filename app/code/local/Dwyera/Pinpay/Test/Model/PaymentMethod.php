@@ -25,7 +25,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      *
      * dataProvider dataProvider
      * @loadFixture fieldsets.yaml
-     * @loadExpectation keys.yaml
+     * @loadExpectation fieldsets.yaml
      * @test
      */
     public function getSecretKey()
@@ -38,7 +38,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * Confirms that the publishable key is returned correctly from the DB
      *
      * @loadFixture fieldsets.yaml
-     * @loadExpectation keys.yaml
+     * @loadExpectation fieldsets.yaml
      * @test
      */
     public function getPublishableKey()
@@ -51,15 +51,35 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * Test to confirm that getSecretKey and getPublishableKey return
      * an empty string when the key is empty
      * @loadFixture empty_fieldsets.yaml
-     * @loadExpectation keys.yaml
+     * @loadExpectation fieldsets.yaml
      * @test
      */
     public function getKeyMissing()
     {
         $this->assertEquals($this->expected('empty')->getEmpty(), $this->model->getPublishableKey());
         $this->assertEquals($this->expected('empty')->getEmpty(), $this->model->getSecretKey());
-
     }
 
+    /**
+     * Tests whether the correct service URL is returned for test mode
+     *
+     * @loadFixture fieldsets_testing.yaml
+     * @loadExpectation fieldsets.yaml
+     * @test
+     */
+    public function getServiceURLTestMode() {
+        $this->assertEquals($this->expected('urls')->getTestingUrl(), $this->model->getServiceURL());
+    }
+
+    /**
+     * Tests whether the correct service URL is returned for production mode
+     *
+     * @loadFixture fieldsets.yaml
+     * @loadExpectation fieldsets.yaml
+     * @test
+     */
+    public function getServiceURLProductionMode() {
+        $this->assertEquals($this->expected('urls')->getProductionUrl(), $this->model->getServiceURL());
+    }
 
 }
