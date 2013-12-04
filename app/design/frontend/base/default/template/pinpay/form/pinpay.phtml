@@ -115,6 +115,23 @@ $_method = $_form->getMethod();
 
         Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
 
+        document.observe("payment-method:switched", function(event) {
+            if(event.memo.method_code == "<?php echo $_code ?>") {
+                toggleSubmit(true);
+            } else {
+                toggleSubmit(false);
+            }
+        });
+
+        function toggleSubmit(disabled) {
+            var submitButton = $('payment-buttons-container').select('button')[0];
+            if(disabled === true) {
+                submitButton.addClassName('disabled');
+            } else {
+                submitButton.removeClassName('disabled');
+            }
+        }
+
         $('co-directpost-form').observe('submit', function(e) {
 
             e.stop();
@@ -152,6 +169,7 @@ $_method = $_form->getMethod();
                 ip.value = response.ip_address;
 
                 console.log(response.response.token);
+                toggleSubmit(false);
 
             } else {
                 alert(response.error_description);
