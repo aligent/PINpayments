@@ -1,19 +1,12 @@
 <?xml version="1.0"?>
 <layout version="0.1.0">
-    <!--<pinpay_index_index>
-        <reference name="root">
-            <action method="setTemplate">
-                <template>page/1column.phtml</template>
-            </action>
-        </reference>
-        <reference name="content">
-            <block type="pinpay/index" name="pinpay_index" template="pinpay/form/pinpay.phtml"/>
-        </reference>
-    </pinpay_index_index>-->
     <checkout_onepage_index>
         <reference name="head">
-            <action method="addJs">
+            <action method="addJs" ifconfig="payment/pinpay/test">
                 <script>pinpay/pin.test.js</script>
+            </action>
+            <action method="addJs" unlessconfig="payment/pinpay/test">
+                <script>pinpay/pin.prod.js</script>
             </action>
         </reference>
     </checkout_onepage_index>

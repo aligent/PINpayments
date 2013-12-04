@@ -11,6 +11,7 @@ To install this module in a Magento site
 Deploy modules required for this module
 =======================================
 
+modman clone https://github.com/fbrnc/Aoe_LayoutConditions.git
 modman clone git://github.com/EcomDev/EcomDev_PHPUnit.git 
 
 Notes
