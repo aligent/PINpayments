@@ -1,14 +1,6 @@
 <?php
 class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
 {
-    /** @var  $model Dwyera_Pinpay_Model_PaymentMethod */
-    private $model;
-
-    protected function _prepareLayout()
-    {
-        $this->model = Mage::getModel('pinpay/PaymentMethod');
-        return parent::_prepareLayout();
-    }
 
     protected function _construct()
     {
@@ -22,7 +14,14 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
      * @return string
      */
     protected  function getPublishableKey() {
-        return $this->model->getPublishableKey();
+        return $this->getMethod()->getPublishableKey();
+    }
+
+    /**
+     * @return Mage_Sales_Model_Quote_Address
+     */
+    protected function getBillingAddress() {
+        return $this->getMethod()->getInfoInstance()->getQuote()->getBillingAddress();
     }
 
 }

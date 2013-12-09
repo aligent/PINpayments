@@ -5,6 +5,7 @@
 $_form = $this;
 $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
+$_billingAddress = $this->getBillingAddress();
 
 ?>
 
@@ -62,45 +63,46 @@ $_method = $_form->getMethod();
             </div>
         </li>
 
+        <?php //TODO Hide the fields below. They should be automatically populated ?>
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_line1" class="required"><em>*</em><?php echo $this->__('Address Line 1') ?></label>
-                <input type="text" title="<?php echo $this->__('Address Line 1') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_line1" value="" />
+                <input type="text" title="<?php echo $this->__('Address Line 1') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_line1" value="<?php echo $_billingAddress->getStreet1() ?>" />
             </div>
         </li>
 
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_line2"><?php echo $this->__('Address Line 2') ?></label>
-                <input type="text" title="<?php echo $this->__('Address Line 2') ?>" class="input-text" id="<?php echo $_code ?>_address_line2" value="" />
+                <input type="text" title="<?php echo $this->__('Address Line 2') ?>" class="input-text" id="<?php echo $_code ?>_address_line2" value="<?php echo $_billingAddress->getStreet2() ?>" />
             </div>
         </li>
 
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_city" class="required"><em>*</em><?php echo $this->__('City') ?></label>
-                <input type="text" title="<?php echo $this->__('City') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_city" value="" />
+                <input type="text" title="<?php echo $this->__('City') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_city" value="<?php echo $_billingAddress->getCity() ?>" />
             </div>
         </li>
 
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_state" class="required"><em>*</em><?php echo $this->__('State') ?></label>
-                <input type="text" title="<?php echo $this->__('State') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_state" value="" />
+                <input type="text" title="<?php echo $this->__('State') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_state" value="<?php echo $_billingAddress->getRegion() ?>" />
             </div>
         </li>
 
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_postcode" class="required"><em>*</em><?php echo $this->__('Postcode') ?></label>
-                <input type="text" title="<?php echo $this->__('Postcode') ?>" class="input-text required-entry validate-zip-international" id="<?php echo $_code ?>_address_postcode" value="" />
+                <input type="text" title="<?php echo $this->__('Postcode') ?>" class="input-text required-entry validate-zip-international" id="<?php echo $_code ?>_address_postcode" value="<?php echo $_billingAddress->getPostcode() ?>" />
             </div>
         </li>
 
         <li>
             <div class="input-box">
                 <label for="<?php echo $_code ?>_address_country" class="required"><em>*</em><?php echo $this->__('Country') ?></label>
-                <input type="text" title="<?php echo $this->__('Country') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_country" value="" />
+                <input type="text" title="<?php echo $this->__('Country') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_country" value="<?php echo $_billingAddress->getCountryModel()->getName() ?>" />
             </div>
         </li>
 
@@ -122,10 +124,8 @@ $_method = $_form->getMethod();
 
         initialize: function(){
             Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
-            //var inputs = $('<?php echo $_code ?>_direct_form').getInputs();
-            //for(var i = 0; i<inputs.length;i++) {inputs[i].disabled = false;}
 
-            // TODO clean up these anon listeners
+            <?php // TODO clean up these anon listeners ?>
             document.observe("payment-method:switched", function(event) {
 
                 if(event.memo.method_code == "<?php echo $_code ?>" && this.token == null) {
