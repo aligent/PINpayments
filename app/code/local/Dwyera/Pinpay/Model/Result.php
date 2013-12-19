@@ -12,6 +12,7 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
 
     const HTTP_RESPONSE_CODE_APPROVED = 201;
     const HTTP_RESPONSE_CODE_INVALID = 422;
+    const HTTP_RESPONSE_CODE_FAILED = 400;
 
     const RESPONSE_CODE_APPROVED = 1;
     const RESPONSE_CODE_DECLINED = 2;
@@ -19,9 +20,11 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
     const RESPONSE_CODE_PROC_ERROR = 4;
     const RESPONSE_CODE_SUSP_FRAUD = 5;
     const RESPONSE_CODE_CARD_EXPIRED = 6;
+    const RESPONSE_CODE_INVALID_RESOURCE = 7;
 
     private $response;
     private $msgObj;
+    private $httpResponseCode;
 
     /**
      *
@@ -32,7 +35,8 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
     public function __construct(Zend_Http_Response $response)
     {
         $this->response = $response;
-        $this->msgObj = json_decode($this->response->getBody());
+        $this->httpResponseCode = $response->getStatus();
+        $this->msgObj = json_decode($response->getBody());
         if ($this->msgObj == null) {
             throw new Dwyera_Pinpay_Model_ResponseParseException("Could not parse PinPayments gateway response");
         }
@@ -51,11 +55,39 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
      */
     public function getGatewayResponseStatus()
     {
-        if (isset($this->msgObj->response) && $this->msgObj->response->success) {
-            return self::RESPONSE_CODE_APPROVED;
-        } else {
-            return self::RESPONSE_CODE_DECLINED;
+        if (!isset($this->msgObj)) {
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
         }
+
+        $responseVal = self::RESPONSE_CODE_DECLINED;
+
+        if ($this->httpResponseCode == self::HTTP_RESPONSE_CODE_APPROVED) {
+            $responseVal = self::RESPONSE_CODE_APPROVED;
+        } elseif ($this->httpResponseCode == self::HTTP_RESPONSE_CODE_INVALID) {
+            $responseVal = self::RESPONSE_CODE_INVALID_RESOURCE;
+        } elseif ($this->httpResponseCode == self::HTTP_RESPONSE_CODE_FAILED && isset($this->msgObj->error)) {
+            switch($this->msgObj->error) {
+                case 'card_declined':
+                    $responseVal = self::RESPONSE_CODE_DECLINED;
+                    break;
+                case 'insufficient_funds':
+                    $responseVal = self::RESPONSE_CODE_INSUF_FUNDS;
+                    break;
+                case 'processing_error':
+                    $responseVal = self::RESPONSE_CODE_PROC_ERROR;
+                    break;
+                case 'suspected_fraud':
+                    $responseVal = self::RESPONSE_CODE_SUSP_FRAUD;
+                    break;
+                case 'expired_card':
+                    $responseVal = self::RESPONSE_CODE_CARD_EXPIRED;
+                    break;
+                default:
+                     $responseVal = self::RESPONSE_CODE_DECLINED;
+            }
+        }
+
+        return $responseVal;
     }
 
     public function getResponseCodeDescription($responseCode)
@@ -80,7 +112,7 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
 
     public function getErrorDescription()
     {
-        if (isset($this->msgObj->response) && $this->msgObj->response->success) {
+        if ($this->isSuccessResponse()) {
             return "";
         } elseif (isset($this->msgObj->error_description)) {
             return $this->msgObj->error_description;
@@ -91,13 +123,38 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
 
     public function getErrorMessages()
     {
-        if (isset($this->msgObj->response) && $this->msgObj->response->success) {
+        if ($this->isSuccessResponse()) {
             return array();
         } elseif (isset($this->msgObj->messages)) {
             return $this->msgObj->messages;
         } else {
             throw new Dwyera_Pinpay_Model_ResponseParseException;
         }
+    }
+
+    public function getErrorToken()
+    {
+        if ($this->isSuccessResponse()) {
+            return "";
+        } elseif (isset($this->msgObj->charge_token)) {
+            return $this->msgObj->charge_token;
+        } else {
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+    }
+
+    public function getResponseToken()
+    {
+        if ($this->isSuccessResponse()) {
+            return $this->msgObj->response->token;
+        } else {
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+    }
+
+    public function isSuccessResponse()
+    {
+        return isset($this->msgObj->response) && $this->msgObj->response->success;
     }
 
 

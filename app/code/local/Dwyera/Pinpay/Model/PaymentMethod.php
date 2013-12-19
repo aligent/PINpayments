@@ -41,7 +41,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Send authorize request to gateway
      *
-     * @param  Mage_Payment_Model_Info $payment
+     * @param  Mage_Sales_Model_Order_Payment $payment
      * @param  float $amount
      * @return Dwyera_Pinpay_Model_PaymentMethod
      */
@@ -56,25 +56,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
-        /*$email = '';
-
-        if (Mage::getSingleton('customer/session')->isLoggedIn()) {
-            $customer = Mage::getSingleton('customer/session')->getCustomer();
-            $email = $customer->getEmail();
-        }*/
-
-        $request = $this->_buildRequest($payment, $amount); /*Mage::getModel('pinpay/request');
-        $request = $request->setEmail($email)->setAmount($amount)->
-            setToken($payment->getAdditionalInformation('card_token'))->
-            setCustomerIp($payment->getAdditionalInformation('ip_address'));*/
+        $request = $this->_buildRequest($payment, $amount, $payment->getOrder()->getBillingAddress()->getEmail());
         $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
 
-        //TODO change status of order from processing to complete
         /** @var Mage_Sales_Model_Order_Payment $payment */
-        /*$order = $payment->getOrder();
-        /*$order->setData('state', $order::STATE_COMPLETE);
-        //$order->setState($order::STATE_CLOSED, true);
-        $order->save();*/
 
         return $this;
     }
@@ -112,15 +97,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
     }
 
-    protected function _buildRequest($payment, $amount)
+    protected function _buildRequest($payment, $amount, $email)
     {
-        $email = '';
-        if (Mage::getSingleton('customer/session')->isLoggedIn()) {
-            /* Get the customer data */
-            $customer = Mage::getSingleton('customer/session')->getCustomer();
-            $email = $customer->getEmail();
-        }
-
         $request = Mage::getModel('pinpay/request')->setEmail($email)->
             setAmount($amount)->
             setDescription("Quote #:".$payment->getOrder()->getRealOrderId())->
@@ -157,8 +135,17 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
         switch ($result->getGatewayResponseStatus()) {
             case $result::RESPONSE_CODE_APPROVED:
+
+                // Sets the response token
+                $payment->setCcTransId(''.$result->getResponseToken());
+                $payment->setTransactionId(''.$result->getResponseToken());
                 return true;
-            case $result::RESPONSE_CODE_DECLINED:
+            case $result::RESPONSE_CODE_SUSP_FRAUD:
+                $payment->setIsTransactionPending(true);
+                $payment->setIsFraudDetected(true);
+                $payment->setCcTransId(''.$result->getErrorToken());
+                $payment->setTransactionId(''.$result->getErrorToken());
+                return true;
             default:
                 Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile, true);
                 Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription())));
@@ -174,8 +161,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     protected function _postRequest(Dwyera_Pinpay_Model_Request $request, $requestType)
     {
-        // TODO This method should be made more generic to support the various calls to PinPayments
-
         $client = new Varien_Http_Client();
 
         $url = $this->getServiceURL();
@@ -186,7 +171,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
         $client->setConfig($this->_getHttpConfig());
         $client->setAuth($this->getSecretKey(), '');
-
 
         switch ($requestType) {
             case self::REQUEST_TYPE_AUTH_ONLY:

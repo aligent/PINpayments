@@ -1,4 +1,14 @@
 success:
   code: 1
 failure:
+  code: 7
+fraud:
+  code: 5
+declined:
   code: 2
+insufficient_funds:
+  code: 3
+processing_error:
+  code: 4
+expired_card:
+  code: 6
