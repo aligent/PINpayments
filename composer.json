@@ -1,0 +1,15 @@
+{
+    "name":"aligent/pinpayments",
+    "type":"magento-module",
+    "homepage":"https://git.assembla.com/aligent.pinpay.git",
+    "description":"Pin Payments magento payment module",
+    "require":{
+        "fbrnc/aoe_layoutconditions":"*"
+    },
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/fbrnc/Aoe_LayoutConditions.git"
+        },
+    ]
+}
