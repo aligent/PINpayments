@@ -16,8 +16,5 @@
     "require":{
         "fbrnc/aoe_layoutconditions":"dev-master",
         "magento-hackathon/magento-composer-installer":"*"
-    },
-    "extra": {
-        "magento-root-dir": "tests/magento"
     }
 }
