@@ -3,7 +3,7 @@ success:
   message: ""
 failure:
   code: 7
-  message: "Description can't be blank"
+  message: "One or more parameters were missing or invalid. ( Description can't be blank. )"
 fraud:
   code: 5
   message: "The transaction was flagged as possibly fraudulent and subsequently declined."

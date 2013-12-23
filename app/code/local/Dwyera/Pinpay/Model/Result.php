@@ -110,12 +110,26 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
         }
     }
 
+    /**
+     * Gets the complete error description.  In the case of multiple error messages, these will be concatenated
+     * @return string
+     * @throws Dwyera_Pinpay_Model_ResponseParseException
+     */
     public function getErrorDescription()
     {
         if ($this->isSuccessResponse()) {
             return "";
         } elseif (isset($this->msgObj->error_description)) {
-            return $this->msgObj->error_description;
+            $errorMsg = $this->msgObj->error_description;
+            if($this->msgObj->error == "invalid_resource") {
+                $errorMsg.=" ( ";
+                $messages = $this->getErrorMessages();
+                foreach($messages as $message) {
+                    $errorMsg .= $message->message.". ";
+                }
+                $errorMsg.=")";
+            }
+            return $errorMsg;
         } else {
             throw new Dwyera_Pinpay_Model_ResponseParseException;
         }

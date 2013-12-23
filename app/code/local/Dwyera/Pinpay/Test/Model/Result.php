@@ -34,13 +34,15 @@ class Dwyera_Pinpay_Test_Model_Result extends EcomDev_PHPUnit_Test_Case
      * @dataProvider dataProvider
      * @loadExpectation
      */
-    public function testGetGatewayResponseStatus($responseJson, $responseCode, $testRef)
+    public function testGetGatewayResponse($responseJson, $responseCode, $testRef)
     {
 
         $zendHttpResponse = new Zend_Http_Response($responseCode, array(), $responseJson);
         $model = Mage::getModel("pinpay/result", $zendHttpResponse);
 
         $this->assertEquals($this->expected('%s', $testRef)->getCode(), $model->getGatewayResponseStatus());
+
+        $this->assertEquals($this->expected('%s', $testRef)->getMessage(), $model->getErrorDescription());
     }
 
 }

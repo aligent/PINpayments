@@ -59,8 +59,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request = $this->_buildRequest($payment, $amount, $payment->getOrder()->getBillingAddress()->getEmail());
         $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
 
-        /** @var Mage_Sales_Model_Order_Payment $payment */
-
         return $this;
     }
 
@@ -99,11 +97,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     protected function _buildRequest($payment, $amount, $email)
     {
-        $request = Mage::getModel('pinpay/request')->setEmail($email)->
-            setAmount($amount)->
+        $request = Mage::getModel('pinpay/request');
+        $request->setEmail($email)->
+            setAmount($request::getAmountInCents($amount))->
             setDescription("Quote #:".$payment->getOrder()->getRealOrderId())->
-            setToken($payment->getAdditionalInformation('card_token'))->
-            setCustomerIp($payment->getAdditionalInformation('ip_address'));
+            setCardToken($payment->getAdditionalInformation('card_token'))->
+            setIpAddress($payment->getAdditionalInformation('ip_address'));
         return $request;
     }
 
@@ -135,7 +134,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
         switch ($result->getGatewayResponseStatus()) {
             case $result::RESPONSE_CODE_APPROVED:
-
                 // Sets the response token
                 $payment->setCcTransId(''.$result->getResponseToken());
                 $payment->setTransactionId(''.$result->getResponseToken());
@@ -176,12 +174,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             case self::REQUEST_TYPE_AUTH_ONLY:
                 $url .= "charges";
                 $client->setMethod($client::POST);
-                //TODO iterate over all params in $request and add them as parameters
-                $client->setParameterPost("email", $request->getEmail());
-                $client->setParameterPost("description", $request->getDescription());
-                $client->setParameterPost("amount", $request->getAmountInCents());
-                $client->setParameterPost("ip_address", $request->getIp());
-                $client->setParameterPost("card_token", $request->getToken());
+
+                $requestProps = $request->getData();
+                //iterate over all params in $request and add them as parameters
+                foreach($requestProps as $propKey => $propVal) {
+                    $client->setParameterPost($propKey, $propVal);
+                }
                 break;
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
