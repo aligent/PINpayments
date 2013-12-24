@@ -12,13 +12,13 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
     /** @var  $model Dwyera_Pinpay_Model_PaymentMethod */
     protected $model;
 
-    protected function setUp()
+    private $pinpaymentsResultMock;
+
+   /* protected function setUp()
     {
 
-        $this->model = Mage::getModel("pinpay/paymentMethod");
 
-        $this->assertInstanceOf('Dwyera_Pinpay_Model_PaymentMethod', $this->model);
-    }
+    }*/
 
     /**
      * Confirms that the secret key is returned correctly from the DB
@@ -80,6 +80,64 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      */
     public function getServiceURLProductionMode() {
         $this->assertEquals($this->expected('urls')->getProductionUrl(), $this->model->getServiceURL());
+    }
+
+    protected function setUp()
+    {
+        parent::setUp();
+
+        $this->model = Mage::getModel("pinpay/paymentMethod");
+
+        $this->assertInstanceOf('Dwyera_Pinpay_Model_PaymentMethod', $this->model);
+    }
+
+    /**
+     * Authorize integration tests.
+     * @test
+     * @loadFixture orders
+     * @dataProvider dataProvider
+     */
+    public function testSuccessAuthorize($responseStatus, $orderNum, $orderVal) {
+
+        $paymentMock = $this->setupAuthorizeMocks($responseStatus, $orderNum);
+        $orderPayment = $this->setupOrder($orderNum);
+
+        $resVal = $paymentMock->authorize($orderPayment, $orderVal);
+        // the authorize method should return a copy of itself
+        $this->assertEquals($paymentMock, $resVal);
+    }
+
+    private function setupOrder($orderNum) {
+        $order = Mage::getModel('sales/order')->load($orderNum);
+        $orderPayment = Mage::getModel('sales/order_payment')->load($orderNum);
+        $orderPayment->setOrder($order);
+        return $orderPayment;
+    }
+
+    private function setupAuthorizeMocks($responseStatus) {
+        // mock pinpay response instance
+        $this->pinpaymentsResultMock = $this->getModelMock('pinpay/result',
+            array('getGatewayResponseStatus', 'getResponseToken'),
+            false, array(null), "",  false);
+
+        $this->pinpaymentsResultMock->expects($this->any())
+            ->method('getGatewayResponseStatus')
+            ->will($this->returnValue($responseStatus));
+        $this->pinpaymentsResultMock->expects($this->any())
+            ->method('getResponseToken')
+            ->will($this->returnValue('1'));
+        $this->replaceByMock('model', 'pinpay/result', $this->pinpaymentsResultMock);
+
+        /*
+         * Mock the paymentMethod model to apply a partial mock.
+         * This overrides the _postRequest method to stop it from
+         * sending a request to the server.
+         */
+        $paymentMock = $this->getModelMock('pinpay/paymentMethod', array('_postRequest'));
+        $paymentMock->expects($this->once())->method('_postRequest')
+            ->will($this->returnValue(null));
+
+        return $paymentMock;
     }
 
 }

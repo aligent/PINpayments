@@ -193,8 +193,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         try {
             $client->setUri($url);
             $response = $client->request();
-            $resStr = $response->asString();
-            Mage::log('response' . $resStr . ':' . $response->getMessage() . ':' . $response->getStatus(), Zend_Log::DEBUG, self::$logFile, true);
         } catch (Exception $e) {
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
