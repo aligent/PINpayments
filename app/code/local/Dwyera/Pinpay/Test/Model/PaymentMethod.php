@@ -18,12 +18,6 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
 
     private $orderNumber;
 
-   /* protected function setUp()
-    {
-
-
-    }*/
-
     /**
      * Confirms that the secret key is returned correctly from the DB
      *
@@ -112,8 +106,29 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $resVal = $paymentMock->authorize($orderPayment, $orderVal);
         // the authorize method should return a copy of itself
         $this->assertEquals($paymentMock, $resVal);
+
+        $responseObj = json_decode($responseValue);
+        $this->checkPaymentProperties($orderPayment, null, $responseObj->response->token);
     }
 
+    /**
+     * Test that calls to the authorize method with fraudulent cards are recorded correctly
+     * @test
+     * @loadFixture orders
+     * @dataProvider dataProvider
+     */
+    public function testRecordFraudAuthorize($orderNum, $orderVal, $responseValue, $responseCode) {
+        $this->skipPostParamCheck = true;
+        $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
+        $orderPayment = $this->setupOrder($orderNum);
+
+        $resVal = $paymentMock->authorize($orderPayment, $orderVal);
+        // the authorize method should return a copy of itself
+        $this->assertEquals($paymentMock, $resVal);
+
+        $responseObj = json_decode($responseValue);
+        $this->checkPaymentProperties($orderPayment, true, $responseObj->charge_token);
+    }
 
     /**
      * Test that calls to the authorize method with incorrect payment details fail with an exception
@@ -151,6 +166,19 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $orderPayment = Mage::getModel('sales/order_payment')->load($orderNum);
         $orderPayment->setOrder($order);
         return $orderPayment;
+    }
+
+    /**
+     * Ensures correct payment properties are set
+     * @param $orderPayment
+     * @param $expectedFraudValue
+     * @param $expectedTransactionId
+     */
+    private function checkPaymentProperties($orderPayment, $expectedFraudValue, $expectedTransactionId) {
+        $this->assertEquals($expectedFraudValue, $orderPayment->getIsTransactionPending());
+        $this->assertEquals($expectedFraudValue, $orderPayment->getIsFraudDetected());
+        $this->assertEquals($expectedTransactionId, $orderPayment->getCcTransId());
+        $this->assertEquals($expectedTransactionId, $orderPayment->getTransactionId());
     }
 
     private function setupAuthorizeMocks($responseValue, $responseCode) {

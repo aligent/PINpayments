@@ -120,7 +120,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * @param Mage_Payment_Model_Info $payment
      * @param string $requestType
      * @param Dwyera_Pinpay_Model_Request
-     * @return Mage_Paygate_Model_Authorizenet
+     * @return boolean Returns true if order was successfully placed
      * @throws Mage_Core_Exception
      * @throws InvalidArgumentException
      */
@@ -192,7 +192,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
         }
-
 
         Mage::log("Request: $request->getData()", Zend_Log::DEBUG, self::$logFile, true);
 
