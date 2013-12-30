@@ -9,6 +9,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     const TIMEOUT = 30;
 
+    const GENERIC_PAYMENT_GATEWAY_ERROR = "Payment gateway error.  Please try again soon.";
+
     /**
      * unique internal payment method identifier
      *
@@ -31,6 +33,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
+        $cardToken = $data->getCardToken();
+        $ipAddress = $data->getIpAddress();
+        if(empty($cardToken) || empty($ipAddress)) {
+            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile, true);
+            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
+        }
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
@@ -197,7 +205,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
 
-            Mage::throwException((Mage::helper('pinpay')->__("Error in payment gateway")));
+            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
 
         return $response;

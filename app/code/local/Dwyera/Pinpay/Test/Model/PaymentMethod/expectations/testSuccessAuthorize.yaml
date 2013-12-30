@@ -1,0 +1,18 @@
+1-0: #orderNumber-#testNumber
+  email: testing@aligent.com.au
+  amount: 10000
+  description: "Quote #:100009920"
+  card_token: 'card_ptkBM3VRh3TuT0PpYMLs0g'
+  ip_address: 203.122.247.5
+1-1:
+  email: testing@aligent.com.au
+  amount: 20000
+  description: "Quote #:100009920"
+  card_token: 'card_ptkBM3VRh3TuT0PpYMLs0g'
+  ip_address: 203.122.247.5
+1-2:
+  email: testing@aligent.com.au
+  amount: 30000
+  description: "Quote #:100009920"
+  card_token: 'card_ptkBM3VRh3TuT0PpYMLs0g'
+  ip_address: 203.122.247.5

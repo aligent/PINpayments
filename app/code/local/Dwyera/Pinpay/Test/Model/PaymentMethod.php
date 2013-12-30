@@ -12,7 +12,11 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
     /** @var  $model Dwyera_Pinpay_Model_PaymentMethod */
     protected $model;
 
-    private $pinpaymentsResultMock;
+    private $skipPostParamCheck = false;
+
+    private $testNumber;
+
+    private $orderNumber;
 
    /* protected function setUp()
     {
@@ -92,19 +96,54 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
     }
 
     /**
-     * Authorize integration tests.
+     * Test that calls to the authorize method return the correct results
      * @test
      * @loadFixture orders
      * @dataProvider dataProvider
+     * @loadExpectation
      */
-    public function testSuccessAuthorize($responseStatus, $orderNum, $orderVal) {
+    public function testSuccessAuthorize($orderNum, $orderVal, $testNumber, $responseValue, $responseCode) {
+        $this->testNumber = $testNumber;
+        $this->orderNumber =  $orderNum;
 
-        $paymentMock = $this->setupAuthorizeMocks($responseStatus, $orderNum);
+        $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
         $orderPayment = $this->setupOrder($orderNum);
 
         $resVal = $paymentMock->authorize($orderPayment, $orderVal);
         // the authorize method should return a copy of itself
         $this->assertEquals($paymentMock, $resVal);
+    }
+
+
+    /**
+     * Test that calls to the authorize method with incorrect payment details fail with an exception
+     * @test
+     * @loadFixture orders
+     * @dataProvider dataProvider
+     * @expectedException Mage_Core_Exception
+     */
+    public function testFailureAuthorize($orderNum, $orderVal, $responseValue, $responseCode) {
+        $this->orderNumber =  $orderNum;
+
+        // Don't check the parameters sent to the _postParams method
+        $this->skipPostParamCheck = true;
+
+        $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
+        $orderPayment = $this->setupOrder($orderNum);
+
+        $paymentMock->authorize($orderPayment, $orderVal);
+    }
+
+    /**
+     * Test that calls to the authorize with a negative amount throw an exception
+     * @test
+     * @loadFixture orders
+     * @expectedException Mage_Core_Exception
+     * @dataProvider dataProvider
+     */
+    public function testNegativeAmountAuthorize($responseStatus, $orderNum, $orderVal) {
+        $orderPayment = $this->setupOrder($orderNum);
+        Mage::getModel('pinpay/paymentMethod')->authorize($orderPayment, $orderVal);
     }
 
     private function setupOrder($orderNum) {
@@ -114,30 +153,30 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         return $orderPayment;
     }
 
-    private function setupAuthorizeMocks($responseStatus) {
-        // mock pinpay response instance
-        $this->pinpaymentsResultMock = $this->getModelMock('pinpay/result',
-            array('getGatewayResponseStatus', 'getResponseToken'),
-            false, array(null), "",  false);
-
-        $this->pinpaymentsResultMock->expects($this->any())
-            ->method('getGatewayResponseStatus')
-            ->will($this->returnValue($responseStatus));
-        $this->pinpaymentsResultMock->expects($this->any())
-            ->method('getResponseToken')
-            ->will($this->returnValue('1'));
-        $this->replaceByMock('model', 'pinpay/result', $this->pinpaymentsResultMock);
-
+    private function setupAuthorizeMocks($responseValue, $responseCode) {
         /*
          * Mock the paymentMethod model to apply a partial mock.
          * This overrides the _postRequest method to stop it from
          * sending a request to the server.
          */
+        $zendHttpResponse = new Zend_Http_Response($responseCode, array(), $responseValue);
         $paymentMock = $this->getModelMock('pinpay/paymentMethod', array('_postRequest'));
         $paymentMock->expects($this->once())->method('_postRequest')
-            ->will($this->returnValue(null));
+            ->with($this->callback(array($this,'checkPostParam')),
+                $this->anything())
+            ->will($this->returnValue($zendHttpResponse));
 
         return $paymentMock;
+    }
+
+    public function checkPostParam($paymentRequest) {
+        // skip validation if requested.
+        if($this->skipPostParamCheck) {
+            return true;
+        }
+        // Check that the supplied array is the same as the one in the expectation
+        return  $this->expected('%s-%s', $this->orderNumber, $this->testNumber)->getData() == $paymentRequest->getData();
+
     }
 
 }
