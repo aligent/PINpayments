@@ -9,6 +9,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     const TIMEOUT = 30;
 
+    const GENERIC_PAYMENT_GATEWAY_ERROR = "Payment gateway error.  Please try again soon.";
+
     /**
      * unique internal payment method identifier
      *
@@ -31,6 +33,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
+        $cardToken = $data->getCardToken();
+        $ipAddress = $data->getIpAddress();
+        if (empty($cardToken) || empty($ipAddress)) {
+            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile, true);
+            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
+        }
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
@@ -100,7 +108,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request = Mage::getModel('pinpay/request');
         $request->setEmail($email)->
             setAmount($request::getAmountInCents($amount))->
-            setDescription("Quote #:".$payment->getOrder()->getRealOrderId())->
+            setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
         return $request;
@@ -112,7 +120,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * @param Mage_Payment_Model_Info $payment
      * @param string $requestType
      * @param Dwyera_Pinpay_Model_Request
-     * @return Mage_Paygate_Model_Authorizenet
+     * @return boolean Returns true if order was successfully placed
      * @throws Mage_Core_Exception
      * @throws InvalidArgumentException
      */
@@ -135,14 +143,14 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         switch ($result->getGatewayResponseStatus()) {
             case $result::RESPONSE_CODE_APPROVED:
                 // Sets the response token
-                $payment->setCcTransId(''.$result->getResponseToken());
-                $payment->setTransactionId(''.$result->getResponseToken());
+                $payment->setCcTransId('' . $result->getResponseToken());
+                $payment->setTransactionId('' . $result->getResponseToken());
                 return true;
             case $result::RESPONSE_CODE_SUSP_FRAUD:
                 $payment->setIsTransactionPending(true);
                 $payment->setIsFraudDetected(true);
-                $payment->setCcTransId(''.$result->getErrorToken());
-                $payment->setTransactionId(''.$result->getErrorToken());
+                $payment->setCcTransId('' . $result->getErrorToken());
+                $payment->setTransactionId('' . $result->getErrorToken());
                 return true;
             default:
                 Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile, true);
@@ -177,14 +185,13 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
                 $requestProps = $request->getData();
                 //iterate over all params in $request and add them as parameters
-                foreach($requestProps as $propKey => $propVal) {
+                foreach ($requestProps as $propKey => $propVal) {
                     $client->setParameterPost($propKey, $propVal);
                 }
                 break;
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
         }
-
 
         Mage::log("Request: $request->getData()", Zend_Log::DEBUG, self::$logFile, true);
 
@@ -193,13 +200,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         try {
             $client->setUri($url);
             $response = $client->request();
-            $resStr = $response->asString();
-            Mage::log('response' . $resStr . ':' . $response->getMessage() . ':' . $response->getStatus(), Zend_Log::DEBUG, self::$logFile, true);
         } catch (Exception $e) {
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
 
-            Mage::throwException((Mage::helper('pinpay')->__("Error in payment gateway")));
+            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
 
         return $response;

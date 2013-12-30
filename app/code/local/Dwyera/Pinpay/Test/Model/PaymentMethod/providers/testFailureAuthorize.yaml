@@ -1,0 +1,27 @@
+- #0
+  - 1
+  - 100
+  - '{ "error": "invalid_resource", "error_description": "One or more parameters were missing or invalid.", "messages": [ { "code": "description_invalid", "message": "Description can't be blank", "param": "description" } ] }'
+  - 422
+- #1
+  - 1
+  - 100
+  - '{"error":"card_declined","error_description":"The card was declined","charge_token":"ch_lfUYEBK14zotCTykezJkfg"}'
+  - 400
+- #2
+  - 1
+  - 100
+  - '{"error":"processing_error","error_description":"An error occurred while processing the card","charge_token":"ch_lfUYEBK14zotCTykezJkfg"}'
+  - 400
+- #3
+  - 1
+  - 100
+  - '{"error":"expired_card","error_description":"The card has expired","charge_token":"ch_lfUYEBK14zotCTykezJkfg"}'
+  - 400
+- #4
+  - 1
+  - 100
+  - '{"error":"insufficient_funds","error_description":"There are not enough funds available to process the requested amount","charge_token":"ch_lfUYEBK14zotCTykezJkfg"}'
+  - 400
+
+
