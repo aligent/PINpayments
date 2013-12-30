@@ -8,6 +8,9 @@
             <action method="addJs" unlessconfig="payment/pinpay/test">
                 <script>pinpay/pin.prod.js</script>
             </action>
+            <action method="addCss">
+                <stylesheet>pinpay/pinpay.css</stylesheet>
+            </action>
         </reference>
     </checkout_onepage_index>
 </layout>   
