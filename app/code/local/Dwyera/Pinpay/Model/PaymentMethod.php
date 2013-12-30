@@ -35,7 +35,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
         $cardToken = $data->getCardToken();
         $ipAddress = $data->getIpAddress();
-        if(empty($cardToken) || empty($ipAddress)) {
+        if (empty($cardToken) || empty($ipAddress)) {
             Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile, true);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
@@ -108,7 +108,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request = Mage::getModel('pinpay/request');
         $request->setEmail($email)->
             setAmount($request::getAmountInCents($amount))->
-            setDescription("Quote #:".$payment->getOrder()->getRealOrderId())->
+            setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
         return $request;
@@ -143,14 +143,14 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         switch ($result->getGatewayResponseStatus()) {
             case $result::RESPONSE_CODE_APPROVED:
                 // Sets the response token
-                $payment->setCcTransId(''.$result->getResponseToken());
-                $payment->setTransactionId(''.$result->getResponseToken());
+                $payment->setCcTransId('' . $result->getResponseToken());
+                $payment->setTransactionId('' . $result->getResponseToken());
                 return true;
             case $result::RESPONSE_CODE_SUSP_FRAUD:
                 $payment->setIsTransactionPending(true);
                 $payment->setIsFraudDetected(true);
-                $payment->setCcTransId(''.$result->getErrorToken());
-                $payment->setTransactionId(''.$result->getErrorToken());
+                $payment->setCcTransId('' . $result->getErrorToken());
+                $payment->setTransactionId('' . $result->getErrorToken());
                 return true;
             default:
                 Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile, true);
@@ -185,7 +185,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
                 $requestProps = $request->getData();
                 //iterate over all params in $request and add them as parameters
-                foreach($requestProps as $propKey => $propVal) {
+                foreach ($requestProps as $propKey => $propVal) {
                     $client->setParameterPost($propKey, $propVal);
                 }
                 break;

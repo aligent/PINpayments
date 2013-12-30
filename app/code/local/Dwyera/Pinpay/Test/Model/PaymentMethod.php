@@ -65,7 +65,8 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @loadExpectation fieldsets.yaml
      * @test
      */
-    public function getServiceURLTestMode() {
+    public function getServiceURLTestMode()
+    {
         $this->assertEquals($this->expected('urls')->getTestingUrl(), $this->model->getServiceURL());
     }
 
@@ -76,7 +77,8 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @loadExpectation fieldsets.yaml
      * @test
      */
-    public function getServiceURLProductionMode() {
+    public function getServiceURLProductionMode()
+    {
         $this->assertEquals($this->expected('urls')->getProductionUrl(), $this->model->getServiceURL());
     }
 
@@ -96,9 +98,10 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @dataProvider dataProvider
      * @loadExpectation
      */
-    public function testSuccessAuthorize($orderNum, $orderVal, $testNumber, $responseValue, $responseCode) {
+    public function testSuccessAuthorize($orderNum, $orderVal, $testNumber, $responseValue, $responseCode)
+    {
         $this->testNumber = $testNumber;
-        $this->orderNumber =  $orderNum;
+        $this->orderNumber = $orderNum;
 
         $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
         $orderPayment = $this->setupOrder($orderNum);
@@ -117,7 +120,8 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @loadFixture orders
      * @dataProvider dataProvider
      */
-    public function testRecordFraudAuthorize($orderNum, $orderVal, $responseValue, $responseCode) {
+    public function testRecordFraudAuthorize($orderNum, $orderVal, $responseValue, $responseCode)
+    {
         $this->skipPostParamCheck = true;
         $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
         $orderPayment = $this->setupOrder($orderNum);
@@ -137,8 +141,9 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @dataProvider dataProvider
      * @expectedException Mage_Core_Exception
      */
-    public function testFailureAuthorize($orderNum, $orderVal, $responseValue, $responseCode) {
-        $this->orderNumber =  $orderNum;
+    public function testFailureAuthorize($orderNum, $orderVal, $responseValue, $responseCode)
+    {
+        $this->orderNumber = $orderNum;
 
         // Don't check the parameters sent to the _postParams method
         $this->skipPostParamCheck = true;
@@ -156,12 +161,14 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @expectedException Mage_Core_Exception
      * @dataProvider dataProvider
      */
-    public function testNegativeAmountAuthorize($responseStatus, $orderNum, $orderVal) {
+    public function testNegativeAmountAuthorize($responseStatus, $orderNum, $orderVal)
+    {
         $orderPayment = $this->setupOrder($orderNum);
         Mage::getModel('pinpay/paymentMethod')->authorize($orderPayment, $orderVal);
     }
 
-    private function setupOrder($orderNum) {
+    private function setupOrder($orderNum)
+    {
         $order = Mage::getModel('sales/order')->load($orderNum);
         $orderPayment = Mage::getModel('sales/order_payment')->load($orderNum);
         $orderPayment->setOrder($order);
@@ -174,14 +181,16 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
      * @param $expectedFraudValue
      * @param $expectedTransactionId
      */
-    private function checkPaymentProperties($orderPayment, $expectedFraudValue, $expectedTransactionId) {
+    private function checkPaymentProperties($orderPayment, $expectedFraudValue, $expectedTransactionId)
+    {
         $this->assertEquals($expectedFraudValue, $orderPayment->getIsTransactionPending());
         $this->assertEquals($expectedFraudValue, $orderPayment->getIsFraudDetected());
         $this->assertEquals($expectedTransactionId, $orderPayment->getCcTransId());
         $this->assertEquals($expectedTransactionId, $orderPayment->getTransactionId());
     }
 
-    private function setupAuthorizeMocks($responseValue, $responseCode) {
+    private function setupAuthorizeMocks($responseValue, $responseCode)
+    {
         /*
          * Mock the paymentMethod model to apply a partial mock.
          * This overrides the _postRequest method to stop it from
@@ -190,20 +199,21 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $zendHttpResponse = new Zend_Http_Response($responseCode, array(), $responseValue);
         $paymentMock = $this->getModelMock('pinpay/paymentMethod', array('_postRequest'));
         $paymentMock->expects($this->once())->method('_postRequest')
-            ->with($this->callback(array($this,'checkPostParam')),
+            ->with($this->callback(array($this, 'checkPostParam')),
                 $this->anything())
             ->will($this->returnValue($zendHttpResponse));
 
         return $paymentMock;
     }
 
-    public function checkPostParam($paymentRequest) {
+    public function checkPostParam($paymentRequest)
+    {
         // skip validation if requested.
-        if($this->skipPostParamCheck) {
+        if ($this->skipPostParamCheck) {
             return true;
         }
         // Check that the supplied array is the same as the one in the expectation
-        return  $this->expected('%s-%s', $this->orderNumber, $this->testNumber)->getData() == $paymentRequest->getData();
+        return $this->expected('%s-%s', $this->orderNumber, $this->testNumber)->getData() == $paymentRequest->getData();
 
     }
 
