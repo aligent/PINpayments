@@ -103,8 +103,12 @@ $_billingAddress = $this->getBillingAddress();
         </div>
     </li>
     <li>
+        <div class="buttons-set" id="pinpay-buttons-container">
         <div id="pinpay-submit" class="v-fix">
             <input type='submit' value='Validate Card' id='pinpay-submit-btn' />
+        </div>
+        <span id="pinpay-please-wait" class="please-wait" style="display: none;">
+            <img src="<?php echo $this->getSkinUrl("/images/opc-ajax-loader.gif")?>" alt="Please wait" title="Validating Card..." class="v-middle">Validating Card...        </span>
         </div>
     </li>
 </ul>
@@ -159,7 +163,7 @@ $_billingAddress = $this->getBillingAddress();
                         address_postcode: $('<?php echo $_code ?>_address_postcode').value,
                         address_country: $('<?php echo $_code ?>_address_country').value
                     };
-
+                    checkout.setLoadWaiting('pinpay');
                     Pin.createToken(card, this.handlePinResponse.bind(this));
                 }.bind(this));
             }
@@ -182,7 +186,7 @@ $_billingAddress = $this->getBillingAddress();
 
         handlePinResponse: function(response) {
             if (response.response) {
-
+                checkout.setLoadWaiting(false);
                 this.token = response.response.token;
                 this.ip_address = response.ip_address;
 
@@ -196,6 +200,7 @@ $_billingAddress = $this->getBillingAddress();
                 this.toggleSubmit(false);
 
             } else {
+                checkout.setLoadWaiting(false);
                 alert(response.messages[0].message);
             }
         }
