@@ -124,8 +124,6 @@ $_billingAddress = $this->getBillingAddress();
         initialize: function(){
             Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
 
-            $('pinpay-submit').removeClassName('validation-passed');
-
             <?php // TODO clean up these anon listeners ?>
             document.observe("payment-method:switched", function(event) {
 
@@ -135,7 +133,11 @@ $_billingAddress = $this->getBillingAddress();
                     this.toggleSubmit(false);
                 }
             }.bind(this));
-
+            if($('payment_form_pinpay')){
+                $('payment_form_pinpay').observe('change',function(e){
+                    this.toggleSubmit(true);
+                }.bind(this));
+            }
             if($('pinpay-submit-btn')){
                 $('pinpay-submit-btn').observe('click', function(e) {
                     e.stop();
