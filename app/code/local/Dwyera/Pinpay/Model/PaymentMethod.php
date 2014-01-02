@@ -167,7 +167,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 $payment->setTransactionId('' . $result->getErrorToken());
                 return true;
             default:
-                Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile);
+                Mage::log('Payment could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
                 Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription())));
         }
     }
@@ -184,6 +184,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $client = new Varien_Http_Client();
 
         $url = $this->getServiceURL();
+
+        if(empty($url)) {
+            $errMsg = 'Missing service URL.  Please check configuration settings';
+            Mage::log($errMsg, Zend_Log::ERR, self::$logFile);
+            Mage::throwException((Mage::helper('pinpay')->__($errMsg)));
+        }
         // Ensure URL has trailing slash
         if (substr($url, -1) !== "/") {
             $url .= "/";
@@ -215,7 +221,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         } catch (Exception $e) {
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
-            Mage::log('Payment could not be processed' . $e->getMessage(), Zend_Log::ERR, self::$logFile);
+            Mage::log('Payment could not be processed. ' . $e->getMessage(), Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
 
