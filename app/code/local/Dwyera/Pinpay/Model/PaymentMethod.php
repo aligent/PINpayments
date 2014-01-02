@@ -27,8 +27,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     public function assignData($data)
     {
-        Mage::log('assignData', Zend_Log::ERR, self::$logFile, true);
-
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
         }
@@ -36,12 +34,30 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $cardToken = $data->getCardToken();
         $ipAddress = $data->getIpAddress();
         if (empty($cardToken) || empty($ipAddress)) {
-            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile, true);
+            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
+
+        return $this;
+    }
+
+    /**
+     * validate
+     *
+     * Checks form data before it is submitted to processing functions.
+     *
+     * @return Dwyera_Pinpay_Model_PaymentMethod $this.
+     */
+    public function validate()
+    {
+        $email = $this->getCustomerEmail();
+        if(empty($email)) {
+            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
+            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
+        }
 
         return $this;
     }
@@ -57,14 +73,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     {
         parent::authorize($payment, $amount);
 
-        Mage::log("authorize request for $amount", Zend_Log::DEBUG, self::$logFile, true);
-
         if ($amount <= 0) {
-            Mage::log('Expected amount for transaction is zero or below', Zend_Log::ERR, "dwyera_pinpay_controller.log", true);
+            Mage::log('Expected amount for transaction is zero or below', Zend_Log::ERR, self::$logFile);
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
-        $request = $this->_buildRequest($payment, $amount, $payment->getOrder()->getBillingAddress()->getEmail());
+        $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
         $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
 
         return $this;
@@ -153,7 +167,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 $payment->setTransactionId('' . $result->getErrorToken());
                 return true;
             default:
-                Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile, true);
+                Mage::log('Payment could not be processed' . $result->getErrorDescription(), Zend_Log::ERR, self::$logFile);
                 Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription())));
         }
     }
@@ -193,8 +207,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 throw new InvalidArgumentException("Invalid request type of $requestType");
         }
 
-        Mage::log("Request: $request->getData()", Zend_Log::DEBUG, self::$logFile, true);
-
         /** @var $response Zend_Http_Response */
         $response = null;
         try {
@@ -203,11 +215,34 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         } catch (Exception $e) {
             $debugData['result'] = $e->getMessage();
             $this->_debug($debugData);
-
+            Mage::log('Payment could not be processed' . $e->getMessage(), Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
 
         return $response;
+    }
+
+    /**
+     * Gets the customers email from either the billing info or the session
+     */
+    protected function getCustomerEmail() {
+        $payment = $this->getInfoInstance();
+        $email = null;
+
+        if ($payment instanceof Mage_Sales_Model_Order_Payment)
+        {
+            $email = $payment->getOrder()->getBillingAddress()->getEmail();
+        }
+        else
+        {
+            $email = $payment->getQuote()->getBillingAddress()->getEmail();
+        }
+
+        if(empty($email) && Mage::getSingleton('customer/session')->isLoggedIn()) {
+            $customer = Mage::getSingleton("customer/session")->getCustomer();
+            $email = $customer->getEmail();
+        }
+        return $email;
     }
 
     private function _getHttpConfig()
