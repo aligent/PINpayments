@@ -6,26 +6,26 @@
         </Dwyera_Pinpay>
     </modules>
 
+    <phpunit>
+        <suite>
+            <modules>
+                <Dwyera_Pinpay/>
+            </modules>
+        </suite>
+    </phpunit>
 
     <global>
-
-        <fieldsets>
-            <sales_convert_quote_payment>
-                <check_no>
-                    <to_order_payment>*</to_order_payment>
-                </check_no>
-                <check_date>
-                    <to_order_payment>*</to_order_payment>
-                </check_date>
-            </sales_convert_quote_payment>
-        </fieldsets>
-
         <blocks>
             <pinpay>
                 <class>Dwyera_Pinpay_Block</class>
             </pinpay>
         </blocks>
 
+        <helpers>
+            <pinpay>
+                <class>Dwyera_Pinpay_Helper</class>
+            </pinpay>
+        </helpers>
 
         <models>
             <pinpay>
@@ -70,15 +70,15 @@
             </updates>
         </layout>
 
-            <routers>
-                <pinpay>
-                    <use>standard</use>
-                    <args>
-                        <module>Dwyera_Pinpay</module>
-                        <frontName>pinpay</frontName>
-                    </args>
-                </pinpay>
-            </routers>
+        <routers>
+            <pinpay>
+                <use>standard</use>
+                <args>
+                    <module>Dwyera_Pinpay</module>
+                    <frontName>pinpay</frontName>
+                </args>
+            </pinpay>
+        </routers>
 
     </frontend>
 
@@ -96,10 +96,13 @@
                 <order_status>pending</order_status>
                 <!-- default title for payment checkout page and order view page -->
                 <title>Credit Card (PinPayment)</title>
-
-                <cctypes>AE,VI,MC,DI</cctypes>
+                <production_url>https://api.pin.net.au/1</production_url>
+                <testing_url>https://test-api.pin.net.au/1</testing_url>
+                <test>1</test>
                 <payment_action>authorize</payment_action>
-                <allowspecific>0</allowspecific>
+                <!--<cctypes>AE,VI,MC,DI</cctypes>
+
+                <allowspecific>0</allowspecific>-->
             </pinpay>
         </payment>
     </default>

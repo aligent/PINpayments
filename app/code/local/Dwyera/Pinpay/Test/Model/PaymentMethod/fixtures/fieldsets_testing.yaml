@@ -1,0 +1,4 @@
+config:
+  default/payment/pinpay/production_url: "prod"
+  default/payment/pinpay/testing_url: "test"
+  default/payment/pinpay/test: true

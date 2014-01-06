@@ -1,0 +1,6 @@
+config:
+  default/payment/pinpay/publishable_key: "publish"
+  default/payment/pinpay/secret_key: "secret"
+  default/payment/pinpay/production_url: "prod"
+  default/payment/pinpay/testing_url: "test"
+  default/payment/pinpay/test: false

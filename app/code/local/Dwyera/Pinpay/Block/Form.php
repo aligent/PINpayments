@@ -1,6 +1,7 @@
 <?php
-class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form
+class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
 {
+
     protected function _construct()
     {
         parent::_construct();
@@ -13,8 +14,14 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form
      * @return string
      */
     protected  function getPublishableKey() {
-        //TODO get from admin config
-        return 'pk_UqqRtRVxPCMWpE30cwuGPA';
+        return $this->getMethod()->getPublishableKey();
+    }
+
+    /**
+     * @return Mage_Sales_Model_Quote_Address
+     */
+    protected function getBillingAddress() {
+        return $this->getMethod()->getInfoInstance()->getQuote()->getBillingAddress();
     }
 
 }

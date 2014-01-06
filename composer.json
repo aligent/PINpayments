@@ -1,0 +1,20 @@
+{
+    "name":"aligent/pinpayments",
+    "type":"magento-module",
+    "homepage":"https://git.assembla.com/aligent.pinpay.git",
+    "description":"Pin Payments magento payment module",
+    "repositories": [
+        {
+            "type": "vcs",
+            "url": "https://github.com/magento-hackathon/magento-composer-installer.git"
+        },
+        {
+            "type": "vcs",
+            "url": "https://github.com/fbrnc/Aoe_LayoutConditions.git"
+        }
+    ],
+    "require":{
+        "fbrnc/aoe_layoutconditions":"dev-master",
+        "magento-hackathon/magento-composer-installer":"*"
+    }
+}

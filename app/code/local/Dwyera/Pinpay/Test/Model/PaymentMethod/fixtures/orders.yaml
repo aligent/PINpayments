@@ -1,0 +1,381 @@
+config:
+  default/general/locale/timezone: "Australia/Brisbane"
+  default/shipping/carriers/flatrate/enabled: 1
+  default/shipping/carriers/flatrate/price: 5.00
+eav:
+  catalog_product:
+    - entity_id: 1
+      type_id: simple
+      sku: book
+      name: Book
+      short_description: Book
+      description: Book
+      url_key: book
+      stock:
+        qty: 100.00
+        is_in_stock: 1
+      website_ids:
+        - base
+      category_ids:
+        - 2 # Default Category
+      price: 12.99
+      tax_class_id: 2 # Taxable Goods
+      status: 1             # Enabled
+      visibility: 4         # Visible in Catalog & Search
+    - entity_id: 2
+      type_id: simple
+      sku: cd-case
+      name: CD Case
+      short_description: CD Case
+      description: CD Case
+      url_key: cd-case
+      tier_price: # Yeah! This product has tier prices
+        - qty: 3
+          value: 2.99
+        - qty: 5
+          value: 2.88
+      stock:
+        qty: 50.00
+        is_in_stock: 1
+      website_ids:
+        - base # default website
+      category_ids:
+        - 2 # Default Category
+      price: 3.99
+      tax_class_id: 2 # Taxable Goods
+      status: 1             # Enabled
+      visibility: 4         # Visible in Catalog & Search
+    - entity_id: 3
+      type_id: virtual
+      sku: virtual
+      name: Virtual Product
+      short_description: Virtual Product
+      description: Virtual Product
+      url_key: virtual
+      stock:
+        qty: 300.00
+        is_in_stock: 1
+      website_ids:
+        - base # default website
+      category_ids:
+        - 2 # Default Category
+      price: 3.99
+      tax_class_id: 2 # Taxable Goods
+      status: 1             # Enabled
+      visibility: 4         # Visible in Catalog & Search
+  customer:
+    - entity_id: 1 # Customer with default billing and shipping addresses
+      attribute_set_id: 0 # Fix issue with customer entity
+      website_id: 1
+      store_id: 1
+      created_in: Default Store
+      group_id: 1
+      firstname: John
+      lastname: Doe
+      email: john@doe.com
+      pasword_hash: d1bcc360d05a6bdd7484784f43660c88:hG
+      default_billing: 1
+      default_shipping: 1
+    - entity_id: 2 # Customer without addresses
+      attribute_set_id: 0 # Fix issue with customer entity
+      website_id: 1
+      store_id: 1
+      created_in: Default Store
+      group_id: 1
+      firstname: John Homeless
+      lastname: Doe
+      email: john.homeless@doe.com
+      pasword_hash: d1bcc360d05a6bdd7484784f43660c88:hG
+  customer_address:
+    - entity_id: 1 # Let him to be a guy from Nevada
+      attribute_set_id: 0 # Fix issue with customer address entity
+      customer_id: 1
+      parent_id: 1
+      firstname: John
+      lastname: Doe
+      country_id: US
+      region_id: 39
+      region_code: NV
+      region: Nevada
+      postcode: 89001
+      city: Alamo
+      telephone: 555-55-55
+      street: Address 123
+  order:
+    - entity_id: 1
+      increment_id: 100009920
+      state: "processing"
+      status: "processing"
+      is_active: 1
+      grand_total: 10.0000
+      customer_id: 1
+      applied_rule_ids: ""
+      global_currency_code: "AUD"
+      base_to_global_rate: 1.0000
+      base_to_quote_rate: 1.0000
+      customer_taxvat: ""
+      subtotal: 5.0000
+      base_subtotal: 5.0000
+      subtotal_with_discount: 5.0000
+      base_subtotal_with_discount: 5.0000
+      created_at: "2012-01-19 23:40:27"
+    - entity_id: 2
+      increment_id: 100009921
+      state: "processing"
+      status: "processing"
+      is_active: 1
+      grand_total: 100.0000
+      customer_id: 1
+      applied_rule_ids: ""
+      global_currency_code: "AUD"
+      base_to_global_rate: 1.0000
+      base_to_quote_rate: 1.0000
+      customer_taxvat: ""
+      subtotal: 95.0000
+      base_subtotal: 95.0000
+      subtotal_with_discount: 95.0000
+      base_subtotal_with_discount: 95.0000
+      created_at: "2012-01-19 23:40:27"
+tables:
+  sales/order_payment:
+    - entity_id: 1
+      parent_id: 1
+      method: pinpay
+      additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
+    - entity_id: 2
+      parent_id: 2
+      method: pinpay
+      additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
+  sales/payment_transaction:
+    - transaction_id: 1
+      parent_id: 1
+      order_id: 1
+      payment_id: 1
+      txn_id: dgptrm
+      txn_type: authorization
+      is_closed: 0
+
+  sales/order_address:
+    - entity_id: 1
+      parent_id: 1
+      customer_id: 1
+      save_in_address_book: 1
+      customer_address_id: 1
+      address_type: "billing"
+      email: "testing@aligent.com.au"
+      firstname: "Jonathan"
+      lastname: "Day"
+      company: ""
+      street: "313 Halifax St"
+      city: "Adelaide"
+      region: "SA"
+      postcode: 5000
+      country_id: "AU"
+      telephone: 0881234567
+      fax: ""
+      same_as_billing: 0
+      free_shipping: 0
+      collect_shipping_rates: 0
+    - entity_id: 2
+      parent_id: 1
+      customer_id: 1
+      save_in_address_book: 1
+      customer_address_id: 1
+      address_type: "shipping"
+      email: "testing@aligent.com.au"
+      firstname: "Jonathan"
+      lastname: "Day"
+      company: ""
+      street: "313 Halifax St"
+      city: "Adelaide"
+      region: "SA"
+      postcode: 5000
+      country_id: "AU"
+      telephone: 0881234567
+      fax: ""
+      same_as_billing: 0
+      free_shipping: 0
+      collect_shipping_rates: 0
+    - entity_id: 3
+      parent_id: 2
+      customer_id: 1
+      save_in_address_book: 1
+      address_type: "billing"
+      email: "testing@aligent.com.au"
+      firstname: "Jonathan"
+      lastname: "Day"
+      company: ""
+      street: "313 Halifax St"
+      city: "Adelaide"
+      region: "SA"
+      postcode: 5000
+      country_id: "AU"
+      telephone: 0881234567
+      fax: ""
+      same_as_billing: 0
+      free_shipping: 0
+      collect_shipping_rates: 0
+    - entity_id: 4
+      parent_id: 2
+      customer_id: 1
+      save_in_address_book: 1
+      customer_address_id: 1
+      address_type: "shipping"
+      email: "testing@aligent.com.au"
+      firstname: "Jonathan"
+      lastname: "Day"
+      company: ""
+      street: "313 Halifax St"
+      city: "Adelaide"
+      region: "SA"
+      postcode: 5000
+      country_id: "AU"
+      telephone: 0881234567
+      fax: ""
+      same_as_billing: 0
+      free_shipping: 0
+      collect_shipping_rates: 0
+
+  sales/invoice:
+    - entity_id: 1
+      store_id: 1
+      base_grand_total: 20.0000
+      shipping_tax_amount: 0.0000
+      tax_amount: 1.8181
+      base_tax_amount: 1.8181
+      store_to_order_rate: 1.0000
+      base_shipping_tax_amount: 0.0000
+      base_discount_amount: 0.0000
+      base_to_order_rate: 1.0000
+      grand_total: 20.0000
+      shipping_amount: 0.0000
+      subtotal_incl_tax: 20.0000
+      base_subtotal_incl_tax: 20.0000
+      store_to_base_rate: 1.0000
+      base_shipping_amount: 0.0000
+      total_qty: 1.0000
+      base_to_global_rate: 1.0000
+      subtotal: 20.0000
+      base_subtotal: 20.0000
+      discount_amount: 0.0000
+      billing_address_id: 1
+      order_id: 1
+      state: 1
+      store_currency_code: "AUD"
+      order_currency_code: "AUD"
+      base_currency_code: "AUD"
+      global_currency_code: "AUD"
+      increment_id: 200009925
+      created_at: "2012-01-19 23:40:27"
+      updated_at: "2012-01-19 23:40:27"
+      hidden_tax_amount: 0.0000
+      base_hidden_tax_amount: 0.0000
+
+    - entity_id: 2
+      store_id: 1
+      base_grand_total: 20.0000
+      shipping_tax_amount: 0.0000
+      tax_amount: 0.0000
+      base_tax_amount: 0.0000
+      store_to_order_rate: 1.0000
+      base_shipping_tax_amount: 0.0000
+      base_discount_amount: 0.0000
+      base_to_order_rate: 1.0000
+      grand_total: 20.0000
+      shipping_amount: 0.0000
+      subtotal_incl_tax: 20.0000
+      base_subtotal_incl_tax: 20.0000
+      store_to_base_rate: 1.0000
+      base_shipping_amount: 0.0000
+      total_qty: 1.0000
+      base_to_global_rate: 1.0000
+      subtotal: 20.0000
+      base_subtotal: 20.0000
+      discount_amount: 0.0000
+      billing_address_id: 1
+      order_id: 2
+      state: 2
+      store_currency_code: "AUD"
+      order_currency_code: "AUD"
+      base_currency_code: "AUD"
+      global_currency_code: "AUD"
+      increment_id: 100009926
+      created_at: "2012-01-19 23:40:27"
+      updated_at: "2012-01-19 23:40:27"
+      hidden_tax_amount: 0.0000
+      base_hidden_tax_amount: 0.0000
+
+  sales/order_item:
+    - entity_id: 1
+      order_id: 1
+      base_price: 20.0000
+      base_weee_tax_row_disposition: 0.0000
+      weee_tax_applied_row_amount: 0.0000
+      base_weee_tax_applied_amount: 0.0000
+      base_row_total: 20.0000
+      row_total: 20.0000
+      weee_tax_row_disposition: 0.0000
+      base_weee_tax_disposition: 0.0000
+      price_incl_tax: 20.0000
+      weee_tax_applied_amount: 0.0000
+      base_price_incl_tax: 20.0000
+      qty: 1.0000
+      weee_tax_disposition: 0.0000
+      base_weee_tax_applied_row_amount: 0.0000
+      price: 20.0000
+      base_row_total_incl_tax: 20.0000
+      row_total_incl_tax: 20.0000
+      product_id: 1
+      order_item_id: 1
+      weee_tax_applied: "a:0:{}"
+      sku: "test1"
+      name: "Test Product 1"
+
+    - entity_id: 2
+      order_id: 2
+      base_price: 20.0000
+      base_weee_tax_row_disposition: 0.0000
+      weee_tax_applied_row_amount: 0.0000
+      base_weee_tax_applied_amount: 0.0000
+      base_row_total: 20.0000
+      row_total: 20.0000
+      weee_tax_row_disposition: 0.0000
+      base_weee_tax_disposition: 0.0000
+      price_incl_tax: 20.0000
+      weee_tax_applied_amount: 0.0000
+      base_price_incl_tax: 20.0000
+      qty: 1.0000
+      weee_tax_disposition: 0.0000
+      base_weee_tax_applied_row_amount: 0.0000
+      price: 20.0000
+      base_row_total_incl_tax: 20.0000
+      row_total_incl_tax: 20.0000
+      product_id: 1
+      order_item_id: 2
+      weee_tax_applied: "a:0:{}"
+      sku: "test2"
+      name: "Test Product 2"
+    - entity_id: 3
+      order_id: 2
+      base_price: 20.0000
+      base_weee_tax_row_disposition: 0.0000
+      weee_tax_applied_row_amount: 0.0000
+      base_weee_tax_applied_amount: 0.0000
+      base_row_total: 20.0000
+      row_total: 100.0000
+      weee_tax_row_disposition: 0.0000
+      base_weee_tax_disposition: 0.0000
+      price_incl_tax: 22.0000
+      weee_tax_applied_amount: 0.0000
+      base_price_incl_tax: 22.0000
+      qty: 5.0000
+      weee_tax_disposition: 0.0000
+      base_weee_tax_applied_row_amount: 0.0000
+      price: 20.0000
+      base_row_total_incl_tax: 110.0000
+      row_total_incl_tax: 110.0000
+      product_id: 1
+      order_item_id: 3
+      weee_tax_applied: "a:0:{}"
+      sku: "test3"
+      name: "Test Product 3"

@@ -1,0 +1,21 @@
+success:
+  code: 1
+  message: ""
+failure:
+  code: 7
+  message: "One or more parameters were missing or invalid. ( Description can't be blank. )"
+fraud:
+  code: 5
+  message: "The transaction was flagged as possibly fraudulent and subsequently declined."
+declined:
+  code: 2
+  message: "The card was declined"
+insufficient_funds:
+  code: 3
+  message: "There are not enough funds available to process the requested amount"
+processing_error:
+  code: 4
+  message: "An error occurred while processing the card"
+expired_card:
+  code: 6
+  message: "The card has expired"
