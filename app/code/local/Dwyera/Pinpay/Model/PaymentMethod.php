@@ -11,6 +11,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     const GENERIC_PAYMENT_GATEWAY_ERROR = "Payment gateway error.  Please try again soon.";
 
+    const RESPONSE_APPEND_MSG = ". If you believe this message is incorrect, please contact your bank or our customer service department.";
+
     /**
      * unique internal payment method identifier
      *
@@ -168,7 +170,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 return true;
             default:
                 Mage::log('Payment could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
-                Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription())));
+                Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription() . self::RESPONSE_APPEND_MSG)));
         }
     }
 
