@@ -178,6 +178,12 @@ $_billingAddress = $this->getBillingAddress();
 
     var PPPayment = Class.create(Payment, {
         save: function($super, validated) {
+            debugger;
+            // Ignore this overridden method if the current method isn't PinPay
+            if(this.currentMethod != "<?php echo $_code ?>") {
+                $super();
+                return;
+            }
             // only call the the parents save function if the PinPayment form has already been validated
             if(validated) {
                 $super();
