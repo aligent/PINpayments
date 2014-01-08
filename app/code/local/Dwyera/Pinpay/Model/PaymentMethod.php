@@ -119,6 +119,37 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
     }
 
+    /**
+     * Accepts an order in review by placing it back into the Pending state where it can
+     * then be processed manually.  No action is taken on the actual PinPayments charge. The Magento admin is
+     * responsible for reprocessing the transaction.
+     *
+     * @param Mage_Payment_Model_Info $payment
+     * @return bool
+     */
+    public function acceptPayment(Mage_Payment_Model_Info $payment){
+        parent::acceptPayment($payment);
+        $message = Mage::helper('pinpay')->__('Order returned to Pending status.
+            Please reprocess this transaction manually through the PIN Payments portal before progressing this order.');
+        $payment->getOrder()->setState(Mage_Sales_Model_Order::STATE_NEW, true, $message, false);
+        $payment->setPreparedMessage($message);
+        Mage::getSingleton('adminhtml/session')->addWarning($message);
+        return false;
+    }
+
+    /**
+     *
+     * Cancels an order under review. No action is taken on the actual PinPayments transaction, as any PinPayments charges
+     * that are flagged as fraudulent are immediately denied.  This method simply cancels the Magento order.
+     *
+     * @param Mage_Payment_Model_Info $payment
+     * @return bool
+     */
+    public function denyPayment(Mage_Payment_Model_Info $payment){
+        parent::denyPayment($payment);
+        return true;
+    }
+
     protected function _buildRequest($payment, $amount, $email)
     {
         $request = Mage::getModel('pinpay/request');
@@ -305,5 +336,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * Is this payment method suitable for multi-shipping checkout?
      */
     protected $_canUseForMultishipping = true;
+
+    /**
+     * Can a payment in a Review state be accepted or cancelled?
+     */
+    protected $_canReviewPayment = true;
 
 }
