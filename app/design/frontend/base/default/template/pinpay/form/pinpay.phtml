@@ -178,7 +178,6 @@ $_billingAddress = $this->getBillingAddress();
 
     var PPPayment = Class.create(Payment, {
         save: function($super, validated) {
-            debugger;
             // Ignore this overridden method if the current method isn't PinPay
             if(this.currentMethod != "<?php echo $_code ?>") {
                 $super();
