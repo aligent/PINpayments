@@ -5,11 +5,10 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
     protected function _construct()
     {
         parent::_construct();
-
         $mark = Mage::getConfig()->getBlockClassName('core/template');
         $mark = new $mark;
         $mark->setTemplate('pinpay/form/mark.phtml');
-        $test = $mark->toHtml();
+        // Appends the "Powered by PinPayments logo to payment method description
         $this->setTemplate('pinpay/form/pinpay.phtml')->setMethodLabelAfterHtml($mark->toHtml());
     }
 
