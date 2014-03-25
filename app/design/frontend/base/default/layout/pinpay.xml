@@ -2,11 +2,8 @@
 <layout version="0.1.0">
     <checkout_onepage_index>
         <reference name="head">
-            <action method="addJs" ifconfig="payment/pinpay/test">
-                <script>pinpay/pin.test.js</script>
-            </action>
-            <action method="addJs" unlessconfig="payment/pinpay/test">
-                <script>pinpay/pin.prod.js</script>
+            <action method="addJs">
+                <script helper="pinpay/getScriptUrl" />
             </action>
             <action method="addCss">
                 <stylesheet>pinpay/pinpay.css</stylesheet>
