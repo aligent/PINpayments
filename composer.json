@@ -7,14 +7,9 @@
         {
             "type": "vcs",
             "url": "https://github.com/magento-hackathon/magento-composer-installer.git"
-        },
-        {
-            "type": "vcs",
-            "url": "https://github.com/fbrnc/Aoe_LayoutConditions.git"
         }
     ],
     "require":{
-        "fbrnc/aoe_layoutconditions":"dev-master",
         "magento-hackathon/magento-composer-installer":"*"
     }
 }
