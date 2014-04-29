@@ -3,5 +3,6 @@ app/etc/modules/Dwyera_Pinpay.xml app/etc/modules/Dwyera_Pinpay.xml
 app/design/frontend/base/default/layout/pinpay.xml app/design/frontend/base/default/layout/pinpay.xml 
 app/design/frontend/base/default/template/pinpay app/design/frontend/base/default/template/pinpay
 app/design/adminhtml/default/default/template/pinpay app/design/adminhtml/default/default/template/pinpay
+app/design/adminhtml/default/default/layout/pinpay.xml app/design/adminhtml/default/default/layout/pinpay.xml
 skin/frontend/base/default/pinpay   skin/frontend/base/default/pinpay
 js/pinpay js/pinpay

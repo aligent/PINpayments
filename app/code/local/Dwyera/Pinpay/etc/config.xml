@@ -61,6 +61,16 @@
         </resources>
     </global>
 
+    <adminhtml>
+        <layout>
+            <updates>
+                <pinpay>
+                    <file>pinpay.xml</file>
+                </pinpay>
+            </updates>
+        </layout>
+    </adminhtml>
+
     <frontend>
         <layout>
             <updates>

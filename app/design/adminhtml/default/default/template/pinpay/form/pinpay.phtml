@@ -9,6 +9,8 @@ $_method = $_form->getMethod();
 $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
 ?>
 <ul id="payment_form_<?php echo $_code ?>" style="display:none">
+    <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
+    <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
     <li>
         <div class="input-box">
             <p><?php echo Mage::helper('payment')->__('Record an existing PinPayments charge against an order by supplying the PinPayments transaction Reference.')?></p>
@@ -17,6 +19,128 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
 
             <input type="hidden" id="card_token" name="payment[card_token]" value="<?php echo $this->getOfflineCardToken() ?>"/>
             <input type="hidden" id="ip_address" name="payment[ip_address]" value="<?php echo $_remoteAddr ?>"/>
+
+
         </div>
     </li>
+
+    <li>
+        <label for="<?php echo $_code ?>_cc_owner"><?php echo $this->__('Name on Card') ?> <span class="required">*</span></label>
+        <div class="input-box">
+            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="input-text required-entry" id="<?php echo $_code ?>_cc_owner" value="<?php echo $this->escapeHtml($this->getInfoData('cc_owner')) ?>" />
+        </div>
+    </li>
+
+    <li>
+        <label for="<?php echo $_code ?>_cc_number"><?php echo $this->__('Credit Card Number') ?> <span class="required">*</span></label>
+        <div class="input-box">
+            <input type="text" id="<?php echo $_code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" value="" />
+        </div>
+    </li>
+
+    <li id="<?php echo $_code ?>_cc_type_exp_div">
+        <label for="<?php echo $_code ?>_expiration"><?php echo $this->__('Expiration Date') ?> <span class="required">*</span></label>
+        <div class="input-box">
+            <div class="v-fix">
+                <select id="<?php echo $_code ?>_expiration" class="month validate-cc-exp required-entry">
+                    <?php $_ccExpMonth = $this->getInfoData('cc_exp_month') ?>
+                    <?php foreach ($this->getCcMonths() as $k=>$v): ?>
+                        <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpMonth): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
+                    <?php endforeach ?>
+                </select>
+            </div>
+            <div class="v-fix">
+                <?php $_ccExpYear = $this->getInfoData('cc_exp_year') ?>
+                <select id="<?php echo $_code ?>_expiration_yr" class="year required-entry">
+                    <?php foreach ($this->getCcYears() as $k=>$v): ?>
+                        <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpYear): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
+                    <?php endforeach ?>
+                </select>
+            </div>
+        </div>
+    </li>
+
+    <li id="<?php echo $_code ?>_cc_type_cvv_div">
+        <label for="<?php echo $_code ?>_cc_cid"><?php echo $this->__('Card Verification Number') ?> <span class="required">*</span></label>
+        <div class="input-box">
+            <div class="v-fix">
+                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv required-entry validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" value="" />
+            </div>
+        </div>
+    </li>
+
+    <li id="<?php echo $_code ?>_process_transaction">
+        <div class="input-box">
+            <a href="#" onclick="pp.validatePinPayForm();return false"><?php echo $this->__('Validate Card') ?></a>
+            <input type="hidden" id="<?php echo $_code ?>_processed" value="" class="required-entry">
+        </div>
+    </li>
+
 </ul>
+
+<script>
+
+    //<![CDATA[
+    var Pinpay = Class.create({
+
+        initialize: function(){
+            Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
+        },
+
+        validatePinPayForm: function() {
+            //var validator = new Validation(payment.form);
+            debugger;
+            $('<?php echo $_code ?>_processed').toggleClassName('required-entry', false);
+            if (!editForm.validate()) {
+                $('<?php echo $_code ?>_processed').toggleClassName('required-entry', true);
+                return;
+            }
+
+            var card = {
+                number: $('<?php echo $_code ?>_cc_number').value,
+                name: $('<?php echo $_code ?>_cc_owner').value,
+                expiry_month: $('<?php echo $_code ?>_expiration').value,
+                expiry_year: $('<?php echo $_code ?>_expiration_yr').value,
+                cvc: $('<?php echo $_code ?>_cc_cid').value,
+                address_line1: $('order-shipping_address_street0').value,
+                address_line2: $('order-shipping_address_street1').value,
+                address_city: $('order-shipping_address_city').value,
+                address_state: $('order-shipping_address_region_id')[$('order-shipping_address_region_id').selectedIndex].text,
+                address_postcode: $('order-shipping_address_postcode').value,
+                address_country: $('order-shipping_address_country_id')[$('order-shipping_address_country_id').selectedIndex].text
+            };
+            this.setLoadWaiting(true);
+            Pin.createToken(card, this.handlePinResponse.bind(this));
+        },
+
+        handlePinResponse: function(response) {
+            debugger;
+            if (response.response) {
+                this.setLoadWaiting(false);
+
+                $('<?php echo $_code ?>_card_token').value = response.response.token;
+                $('<?php echo $_code ?>_ip_address').value = response.ip_address;
+
+                alert("<?php echo $this->__('Card Verified Successfully') ?>");
+            } else {
+                this.setLoadWaiting(false);
+                alert(response.messages[0].message);
+                $('<?php echo $_code ?>_processed').toggleClassName('required-entry', true);
+            }
+        },
+
+        setLoadWaiting: function(enabled) {
+            if(enabled) {
+                var r = {options:{loadArea:''}};
+                varienLoaderHandler.handler.onCreate(r);
+            } else {
+                varienLoaderHandler.handler.onComplete();
+            }
+
+        }
+    });
+
+    pp = new Pinpay();
+
+    //]]>
+</script>

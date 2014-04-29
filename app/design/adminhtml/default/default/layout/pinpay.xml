@@ -1,0 +1,13 @@
+<?xml version="1.0"?>
+<layout version="0.1.0">
+    <adminhtml_sales_order_create_index>
+        <reference name="head">
+            <action method="addJs">
+                <script helper="pinpay/getScriptUrl" />
+            </action>
+            <action method="addCss">
+                <stylesheet>pinpay/pinpay.css</stylesheet>
+            </action>
+        </reference>
+    </adminhtml_sales_order_create_index>
+</layout>
