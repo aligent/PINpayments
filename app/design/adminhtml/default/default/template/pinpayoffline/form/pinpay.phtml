@@ -1,0 +1,26 @@
+<?php
+/**
+ * PinPayments admin html payment form
+ */
+
+$_form = $this;
+$_code = $_form->getMethodCode();
+$_method = $_form->getMethod();
+$_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
+?>
+<ul id="payment_form_<?php echo $_code ?>" style="display:none">
+    <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
+    <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
+    <li>
+        <div class="input-box">
+            <p><?php echo Mage::helper('payment')->__('Record an existing PinPayments charge against an order by supplying the PinPayments transaction Reference.')?></p>
+            <label for="pinpay_id"><?php echo Mage::helper('payment')->__('PinPayments Transaction Reference') ?> <span class="required">*</span></label><br/>
+            <input type="text" id="pinpay_id" name="payment[offline_transaction_id]" title="<?php echo Mage::helper('payment')->__('PinPayments Transaction Reference') ?>" class="required-entry input-text" value=""/>
+
+            <input type="hidden" id="card_token" name="payment[card_token]" value="<?php echo $this->getOfflineCardToken() ?>"/>
+            <input type="hidden" id="ip_address" name="payment[ip_address]" value="<?php echo $_remoteAddr ?>"/>
+
+        </div>
+    </li>
+</ul>
+

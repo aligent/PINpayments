@@ -1,8 +1,11 @@
 app/code/local/Dwyera/Pinpay   app/code/local/Dwyera/Pinpay
+app/code/local/Dwyera/Pinpayoffline   app/code/local/Dwyera/Pinpayoffline
 app/etc/modules/Dwyera_Pinpay.xml app/etc/modules/Dwyera_Pinpay.xml
-app/design/frontend/base/default/layout/pinpay.xml app/design/frontend/base/default/layout/pinpay.xml 
+app/etc/modules/Dwyera_Pinpayoffline.xml app/etc/modules/Dwyera_Pinpayoffline.xml
+app/design/frontend/base/default/layout/pinpay.xml app/design/frontend/base/default/layout/pinpay.xml
 app/design/frontend/base/default/template/pinpay app/design/frontend/base/default/template/pinpay
 app/design/adminhtml/default/default/template/pinpay app/design/adminhtml/default/default/template/pinpay
+app/design/adminhtml/default/default/template/pinpayoffline app/design/adminhtml/default/default/template/pinpayoffline
 app/design/adminhtml/default/default/layout/pinpay.xml app/design/adminhtml/default/default/layout/pinpay.xml
 skin/frontend/base/default/pinpay   skin/frontend/base/default/pinpay
 js/pinpay js/pinpay

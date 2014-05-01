@@ -1,47 +1,33 @@
 <?php
 
-class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstract
+class Dwyera_Pinpayoffline_Model_PaymentMethod extends Dwyera_Pinpay_Model_PaymentMethod
 {
-
-    const REQUEST_TYPE_AUTH_ONLY = 'AUTH_ONLY';
-
-    const MAX_REDIRECTS = 0;
-
-    const TIMEOUT = 30;
-
-    const GENERIC_PAYMENT_GATEWAY_ERROR = "Payment gateway error.  Please try again soon.";
-
-    const RESPONSE_APPEND_MSG = ". If you believe this message is incorrect, please contact your bank or our customer service department.";
+    const OFFLINE_CARD_TOKEN_PLACEHOLDER = "OFFLINE TRANSACTION";
 
     /**
      * unique internal payment method identifier
      *
      * @var string [a-z0-9_]
      */
-    protected $_code = 'pinpay';
+    protected $_code = 'pinpay_offline';
 
-    protected $_formBlockType = 'pinpay/form';
+    protected $_formBlockType = 'pinpayoffline/form';
 
-    // Disabled info block
-    //protected $_infoBlockType = 'pinpay/info';
-
-    private static $logFile = 'dwyera_pinpay_controller.log';
+    private static $logFile = 'dwyera_pinpay_offline_controller.log';
 
     public function assignData($data)
     {
+        parent::assignData($data);
         if (!($data instanceof Varien_Object)) {
             $data = new Varien_Object($data);
         }
 
-        $cardToken = $data->getCardToken();
-        $ipAddress = $data->getIpAddress();
-        if (empty($cardToken) || empty($ipAddress)) {
-            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
-            Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
+        $offlineTransId = $data->getOfflineTransactionId();
+
+        // Store the offline transaction ID if supplied
+        if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId)) {
+            $this->getInfoInstance()->setAdditionalInformation("offline_transaction_id", $offlineTransId);
         }
-        // Store the authorised card token and customer IP
-        $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
-        $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
 
         return $this;
     }
@@ -80,9 +66,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
-
-        $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
-        $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
+        if(Mage::app()->getStore()->isAdmin()) {
+            $this->_placeOfflineTransaction($payment, $amount);
+        } else {
+            $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
+            $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
+        }
 
         return $this;
     }
@@ -314,51 +303,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Is this payment method a gateway (online auth/charge) ?
      */
-    protected $_isGateway = true;
-
-    /**
-     * Can authorize online?
-     */
-    protected $_canAuthorize = true;
-
-    /**
-     * Can capture funds online?
-     */
-    protected $_canCapture = false;
-
-    /**
-     * Can capture partial amounts online?
-     */
-    protected $_canCapturePartial = false;
-
-    /**
-     * Can refund online?
-     */
-    protected $_canRefund = false;
-
-    /**
-     * Can void transactions online?
-     */
-    protected $_canVoid = false;
-
-    /**
-     * Can use this payment method in administration panel?
-     */
-    protected $_canUseInternal = true;
+    protected $_isGateway = false;
 
     /**
      * Can show this payment method as an option on checkout payment page?
      */
-    protected $_canUseCheckout = true;
-
-    /**
-     * Is this payment method suitable for multi-shipping checkout?
-     */
-    protected $_canUseForMultishipping = true;
-
-    /**
-     * Can a payment in a Review state be accepted or cancelled?
-     */
-    protected $_canReviewPayment = true;
+    protected $_canUseCheckout = false;
 
 }

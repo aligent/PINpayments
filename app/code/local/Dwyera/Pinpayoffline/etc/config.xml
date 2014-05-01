@@ -1,67 +1,58 @@
 <?xml version="1.0"?>
 <config>
     <modules>
-        <Dwyera_Pinpay>
+        <Dwyera_Pinpayoffline>
             <version>0.1.0</version>
-        </Dwyera_Pinpay>
+        </Dwyera_Pinpayoffline>
     </modules>
-
-    <phpunit>
-        <suite>
-            <modules>
-                <Dwyera_Pinpay/>
-            </modules>
-        </suite>
-    </phpunit>
-
     <global>
         <blocks>
-            <pinpay>
-                <class>Dwyera_Pinpay_Block</class>
-            </pinpay>
+            <pinpayoffline>
+                <class>Dwyera_Pinpayoffline_Block</class>
+            </pinpayoffline>
         </blocks>
 
         <helpers>
-            <pinpay>
-                <class>Dwyera_Pinpay_Helper</class>
-            </pinpay>
+            <pinpayoffline>
+                <class>Dwyera_Pinpayoffline_Helper</class>
+            </pinpayoffline>
         </helpers>
 
         <models>
-            <pinpay>
-                <class>Dwyera_Pinpay_Model</class>
-            </pinpay>
+            <pinpayoffline>
+                <class>Dwyera_Pinpayoffline_Model</class>
+            </pinpayoffline>
         </models>
 
         <!-- declare resource setup for new module -->
         <resources>
             <!-- resource identifier -->
-            <pinpay_setup>
+            <pinpayoffline_setup>
                 <!-- specify that this resource is a setup resource and used for upgrades -->
                 <setup>
                     <!-- which module to look for install/upgrade files in -->
-                    <module>Dwyera_Pinpay</module>
+                    <module>Dwyera_Pinpayoffline</module>
                 </setup>
                 <!-- specify database connection for this resource -->
                 <connection>
                     <!-- do not create new connection, use predefined core setup connection -->
                     <use>core_setup</use>
                 </connection>
-            </pinpay_setup>
-            <pinpay_write>
+            </pinpayoffline_setup>
+            <pinpayoffline_write>
                 <connection>
                     <use>core_write</use>
                 </connection>
-            </pinpay_write>
-            <pinpay_read>
+            </pinpayoffline_write>
+            <pinpayoffline_read>
                 <connection>
                     <use>core_read</use>
                 </connection>
-            </pinpay_read>
+            </pinpayoffline_read>
         </resources>
     </global>
 
-    <frontend>
+    <!--<adminhtml>
         <layout>
             <updates>
                 <pinpay>
@@ -69,13 +60,23 @@
                 </pinpay>
             </updates>
         </layout>
+    </adminhtml>-->
+
+    <frontend>
+        <!--<layout>-->
+            <!--<updates>-->
+                <!--<pinpay>-->
+                    <!--<file>pinpay.xml</file>-->
+                <!--</pinpay>-->
+            <!--</updates>-->
+        <!--</layout>-->
 
         <routers>
             <pinpay>
                 <use>standard</use>
                 <args>
-                    <module>Dwyera_Pinpay</module>
-                    <frontName>pinpay</frontName>
+                    <module>Dwyera_Pinpayoffline</module>
+                    <frontName>pinpayoffline</frontName>
                 </args>
             </pinpay>
         </routers>
@@ -86,24 +87,16 @@
     <default>
         <!-- 'payment' configuration section (tab) -->
         <payment>
-            <!-- 'pinpay' configuration group (fieldset) -->
-            <pinpay>
+            <pinpay_offline>
                 <!-- by default this payment method is inactive -->
-                <active>0</active>
+                <active>1</active>
                 <!-- model to handle logic for this payment method -->
-                <model>pinpay/paymentMethod</model>
+                <model>pinpayoffline/paymentMethod</model>
                 <!-- order status for new orders paid by this payment method -->
                 <order_status>pending</order_status>
                 <!-- default title for payment checkout page and order view page -->
-                <title>Credit Card (PinPayment)</title>
-                <production_url>https://api.pin.net.au/1</production_url>
-                <testing_url>https://test-api.pin.net.au/1</testing_url>
-                <test>1</test>
-                <payment_action>authorize</payment_action>
-                <!--<cctypes>AE,VI,MC,DI</cctypes>
-
-                <allowspecific>0</allowspecific>-->
-            </pinpay>
+                <title>Offline PinPayments (PinPayments)</title>
+            </pinpay_offline>
         </payment>
     </default>
 
