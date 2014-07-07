@@ -3,8 +3,6 @@
 class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstract
 {
 
-    const REQUEST_TYPE_AUTH_ONLY = 'AUTH_ONLY';
-
     const MAX_REDIRECTS = 0;
 
     const TIMEOUT = 30;
@@ -71,15 +69,15 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     }
 
     /**
-     * Send authorize request to gateway
+     * Send capture request to gateway
      *
      * @param \Mage_Sales_Model_Order_Payment $payment
      * @param  float $amount
      * @return Dwyera_Pinpay_Model_PaymentMethod
      */
-    public function authorize(Varien_Object $payment, $amount)
+    public function capture(Varien_Object $payment, $amount)
     {
-        parent::authorize($payment, $amount);
+        parent::capture($payment, $amount);
 
         if ($amount <= 0) {
             Mage::log('Expected amount for transaction is zero or below', Zend_Log::ERR, self::$logFile);
@@ -90,7 +88,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $this->_placeOfflineTransaction($payment, $amount);
         } else {
             $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
-            $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
+            $this->_place($payment, self::ACTION_AUTHORIZE_CAPTURE, $request);
         }
 
         return $this;
@@ -185,10 +183,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     {
         $payment->setAmount($request->getAmount());
 
-        // Simply verify that a valid request type has been sent. Only support authorize at the moment.
+        // Simply verify that a valid request type has been sent. Only support capture at the moment.
         switch ($requestType) {
-            case self::REQUEST_TYPE_AUTH_ONLY:
+            case self::ACTION_AUTHORIZE_CAPTURE:
                 break;
+            case self::ACTION_AUTHORIZE:
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
         }
@@ -259,7 +258,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $client->setAuth($this->getSecretKey(), '');
 
         switch ($requestType) {
-            case self::REQUEST_TYPE_AUTH_ONLY:
+            case self::ACTION_AUTHORIZE_CAPTURE:
                 $url .= "charges";
                 $client->setMethod($client::POST);
 
@@ -267,6 +266,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 //iterate over all params in $request and add them as parameters
                 foreach ($requestProps as $propKey => $propVal) {
                     $client->setParameterPost($propKey, $propVal);
+                    // Tell Pin to immediately capture the funds
+                    $client->setParameterPost('capture', 'true');
                 }
                 break;
             default:
@@ -327,12 +328,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Can authorize online?
      */
-    protected $_canAuthorize = true;
+    protected $_canAuthorize = false;
 
     /**
      * Can capture funds online?
      */
-    protected $_canCapture = false;
+    protected $_canCapture = true;
 
     /**
      * Can capture partial amounts online?
