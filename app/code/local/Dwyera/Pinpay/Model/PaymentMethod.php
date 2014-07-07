@@ -2,6 +2,9 @@
 
 class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstract
 {
+    const REQUEST_TYPE_AUTH_CAPTURE = 'AUTH_CAPTURE';
+    const REQUEST_TYPE_AUTH_ONLY    = 'AUTH_ONLY';
+    const REQUEST_TYPE_CAPTURE_ONLY = 'CAPTURE_ONLY';
 
     const MAX_REDIRECTS = 0;
 
@@ -69,6 +72,32 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     }
 
     /**
+     * @param Mage_Sales_Model_Order_Payment $payment
+     * @param float $amount
+     * @return $this|Mage_Payment_Model_Abstract
+     */
+    public function authorize(Varien_Object $payment, $amount)
+    {
+        parent::authorize($payment, $amount);
+
+        if ($amount <= 0) {
+            Mage::log('Expected amount for transaction is zero or below', Zend_Log::ERR, self::$logFile);
+            Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
+        }
+
+        if(Mage::app()->getStore()->isAdmin() && !is_null($payment->getAdditionalInformation('offline_transaction_id'))) {
+            $this->_placeOfflineTransaction($payment, $amount);
+        } else {
+            $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
+            $this->_place($payment, self::REQUEST_TYPE_AUTH_ONLY, $request);
+            $payment->setIsTransactionClosed(false);
+        }
+
+        return $this;
+    }
+
+
+    /**
      * Send capture request to gateway
      *
      * @param \Mage_Sales_Model_Order_Payment $payment
@@ -84,11 +113,18 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
+        /*
+         * If payment method configured for authorize only, the capture method won't be called for transactions recorded as offline
+         */
         if(Mage::app()->getStore()->isAdmin() && !is_null($payment->getAdditionalInformation('offline_transaction_id'))) {
             $this->_placeOfflineTransaction($payment, $amount);
         } else {
+
+            $authToken = $this->getPreAuthToken($payment);
+            $requestType = is_null($authToken) ? self::REQUEST_TYPE_AUTH_CAPTURE : self::REQUEST_TYPE_CAPTURE_ONLY;
+
             $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
-            $this->_place($payment, self::ACTION_AUTHORIZE_CAPTURE, $request);
+            $this->_place($payment, $requestType, $request);
         }
 
         return $this;
@@ -158,6 +194,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         return true;
     }
 
+    protected function getPreAuthToken($payment) {
+        return $payment->getCcTransId();
+    }
+
     protected function _buildRequest($payment, $amount, $email)
     {
         $request = Mage::getModel('pinpay/request');
@@ -166,6 +206,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
+
+        // Get the transaction ID if set. This will only be the case if a payment has been authorized already
+        $token = $this->getPreAuthToken($payment);
+        if(!is_null($token)) {
+            $request->setAuthToken($token);
+        }
         return $request;
     }
 
@@ -185,9 +231,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
         // Simply verify that a valid request type has been sent. Only support capture at the moment.
         switch ($requestType) {
-            case self::ACTION_AUTHORIZE_CAPTURE:
+            case self::REQUEST_TYPE_AUTH_ONLY:
+            case self::REQUEST_TYPE_AUTH_CAPTURE:
+            case self::REQUEST_TYPE_CAPTURE_ONLY:
                 break;
-            case self::ACTION_AUTHORIZE:
             default:
                 throw new InvalidArgumentException("Invalid request type of $requestType");
         }
@@ -240,7 +287,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     protected function _postRequest(Dwyera_Pinpay_Model_Request $request, $requestType)
     {
-        $client = new Varien_Http_Client();
+        $client = new Zend_Http_Client();
 
         $url = $this->getServiceURL();
 
@@ -257,21 +304,27 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $client->setConfig($this->_getHttpConfig());
         $client->setAuth($this->getSecretKey(), '');
 
-        switch ($requestType) {
-            case self::ACTION_AUTHORIZE_CAPTURE:
-                $url .= "charges";
-                $client->setMethod($client::POST);
-
-                $requestProps = $request->getData();
-                //iterate over all params in $request and add them as parameters
-                foreach ($requestProps as $propKey => $propVal) {
-                    $client->setParameterPost($propKey, $propVal);
-                    // Tell Pin to immediately capture the funds
-                    $client->setParameterPost('capture', 'true');
-                }
-                break;
-            default:
-                throw new InvalidArgumentException("Invalid request type of $requestType");
+        if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE || self::REQUEST_TYPE_AUTH_ONLY) {
+            $url .= "charges";
+            $client->setMethod($client::POST);
+            $requestProps = $request->getData();
+            //iterate over all params in $request and add them as parameters
+            foreach ($requestProps as $propKey => $propVal) {
+                $client->setParameterPost($propKey, $propVal);
+            }
+            if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE) {
+                // Tell Pin to immediately capture the funds
+                $client->setParameterPost('capture', 'true');
+            } else {
+                // Tell Pin to only authorize the funds
+                $client->setParameterPost('capture', 'false');
+            }
+        } else if($requestType == self::REQUEST_TYPE_CAPTURE_ONLY) {
+            $url .= "charges/" . $request->getAuthToken() . "/capture";
+            // Tell Pin to only authorize the funds
+            $client->setMethod($client::PUT);
+        } else {
+            throw new InvalidArgumentException("Invalid request type of $requestType");
         }
 
         /** @var $response Zend_Http_Response */
@@ -328,7 +381,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Can authorize online?
      */
-    protected $_canAuthorize = false;
+    protected $_canAuthorize = true;
 
     /**
      * Can capture funds online?
