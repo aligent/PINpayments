@@ -5,9 +5,9 @@
         <payment>
             <groups>
                 <!-- pinpay fieldset -->
-                <pinpay translate="label" module="paygate">
+                <pinpay translate="label">
                     <!-- will have title 'New Module' -->
-                    <label>PinPayment</label>
+                    <label>PinPayments</label>
                     <!-- position between other payment methods -->
                     <sort_order>670</sort_order>
                     <!-- do not show this configuration options in store scope -->

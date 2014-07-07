@@ -8,37 +8,46 @@ $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
 $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
 ?>
+
 <ul id="payment_form_<?php echo $_code ?>" style="display:none">
     <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
     <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
+
+
     <li>
+        <label for="payment[type]"><?php echo $this->__('Should this transaction be processed online or offline?') ?> <span class="required">*</span></label>
+        <div class="input-box">
+            <input type="radio" id="<?php echo $_code ?>_online" value="online" name="payment[type]" title="<?php echo $this->__('Online Transaction') ?>" onclick="pp.toggleTransactionType(true)" class="radio" disabled="true" />
+            <label for="<?php echo $_code ?>_online"><?php echo $this->__('Online') ?></label>
+            <input type="radio" id="<?php echo $_code ?>_offline" value="offline" name="payment[type]" title="<?php echo $this->__('Offline Transaction') ?>" onclick="pp.toggleTransactionType(false)" class="radio validate-one-required" disabled="true" />
+            <label for="<?php echo $_code ?>_online"><?php echo $this->__('Offline') ?></label>
+        </div>
+    </li>
+
+    <li style="display: none" class="offline" id="offline">
         <div class="input-box">
             <p><?php echo Mage::helper('payment')->__('Record an existing PinPayments charge against an order by supplying the PinPayments transaction Reference.')?></p>
             <label for="pinpay_id"><?php echo Mage::helper('payment')->__('PinPayments Transaction Reference') ?> <span class="required">*</span></label><br/>
-            <input type="text" id="pinpay_id" name="payment[offline_transaction_id]" title="<?php echo Mage::helper('payment')->__('PinPayments Transaction Reference') ?>" class="required-entry input-text" value=""/>
-
-            <input type="hidden" id="card_token" name="payment[card_token]" value="<?php echo $this->getOfflineCardToken() ?>"/>
-            <input type="hidden" id="ip_address" name="payment[ip_address]" value="<?php echo $_remoteAddr ?>"/>
-
+            <input type="text" id="pinpay_id" name="payment[offline_transaction_id]" title="<?php echo Mage::helper('payment')->__('PinPayments Transaction Reference') ?>" class="required-entry input-text" value="" disabled="true"/>
 
         </div>
     </li>
 
-    <li>
+    <li style="display: none" class="online" id="a">
         <label for="<?php echo $_code ?>_cc_owner"><?php echo $this->__('Name on Card') ?> <span class="required">*</span></label>
         <div class="input-box">
-            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="input-text required-entry" id="<?php echo $_code ?>_cc_owner" value="<?php echo $this->escapeHtml($this->getInfoData('cc_owner')) ?>" />
+            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="input-text required-entry" id="<?php echo $_code ?>_cc_owner" value="<?php echo $this->escapeHtml($this->getInfoData('cc_owner')) ?>" disabled="true" />
         </div>
     </li>
 
-    <li>
+    <li style="display: none" class="online" id="b">
         <label for="<?php echo $_code ?>_cc_number"><?php echo $this->__('Credit Card Number') ?> <span class="required">*</span></label>
         <div class="input-box">
-            <input type="text" id="<?php echo $_code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" value="" />
+            <input type="text" id="<?php echo $_code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" value="" disabled="true" />
         </div>
     </li>
 
-    <li id="<?php echo $_code ?>_cc_type_exp_div">
+    <li style="display: none" class="online" id="<?php echo $_code ?>_cc_type_exp_div">
         <label for="<?php echo $_code ?>_expiration"><?php echo $this->__('Expiration Date') ?> <span class="required">*</span></label>
         <div class="input-box">
             <div class="v-fix">
@@ -51,7 +60,7 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
             </div>
             <div class="v-fix">
                 <?php $_ccExpYear = $this->getInfoData('cc_exp_year') ?>
-                <select id="<?php echo $_code ?>_expiration_yr" class="year required-entry">
+                <select id="<?php echo $_code ?>_expiration_yr" class="year required-entry" disabled="true">
                     <?php foreach ($this->getCcYears() as $k=>$v): ?>
                         <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpYear): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
                     <?php endforeach ?>
@@ -60,19 +69,19 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
         </div>
     </li>
 
-    <li id="<?php echo $_code ?>_cc_type_cvv_div">
+    <li style="display: none" class="online" id="<?php echo $_code ?>_cc_type_cvv_div">
         <label for="<?php echo $_code ?>_cc_cid"><?php echo $this->__('Card Verification Number') ?> <span class="required">*</span></label>
         <div class="input-box">
             <div class="v-fix">
-                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv required-entry validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" value="" />
+                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv required-entry validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" value="" disabled="true" />
             </div>
         </div>
     </li>
 
-    <li id="<?php echo $_code ?>_process_transaction">
+    <li style="display: none" class="online" id="<?php echo $_code ?>_process_transaction">
         <div class="input-box">
-            <a href="#" onclick="pp.validatePinPayForm();return false"><?php echo $this->__('Validate Card') ?></a>
-            <input type="hidden" id="<?php echo $_code ?>_processed" value="" class="required-entry">
+            <a href="#" onclick="pp.validatePinPayForm();return false"><?php echo $this->__('Validate Input') ?></a>
+            <input type="hidden" id="<?php echo $_code ?>_processed" value="" class="required-entry" disabled="true">
         </div>
     </li>
 
@@ -88,8 +97,6 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
         },
 
         validatePinPayForm: function() {
-            //var validator = new Validation(payment.form);
-            debugger;
             $('<?php echo $_code ?>_processed').toggleClassName('required-entry', false);
             if (!editForm.validate()) {
                 $('<?php echo $_code ?>_processed').toggleClassName('required-entry', true);
@@ -114,14 +121,13 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
         },
 
         handlePinResponse: function(response) {
-            debugger;
             if (response.response) {
                 this.setLoadWaiting(false);
 
                 $('<?php echo $_code ?>_card_token').value = response.response.token;
                 $('<?php echo $_code ?>_ip_address').value = response.ip_address;
 
-                alert("<?php echo $this->__('Card Verified Successfully') ?>");
+                alert("<?php echo $this->__('Complete. Payment ready for submission') ?>");
             } else {
                 this.setLoadWaiting(false);
                 alert(response.messages[0].message);
@@ -137,6 +143,36 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
                 varienLoaderHandler.handler.onComplete();
             }
 
+        },
+
+        toggleTransactionType: function(toggle) {
+            $$('#payment_form_<?php echo $_code ?> li').each(function(item) {
+                if(item.hasClassName('online')) {
+                    this.disableChildren(item, !toggle);
+                    //item.toggle(toggle); // toggle(bool) isn't working. Must use explicit methods
+                    toggle ? item.show() : item.hide();
+                }
+                else if(item.hasClassName('offline')) {
+                    this.disableChildren(item, toggle);
+                    toggle ? item.hide() : item.show();
+                }
+
+                if(toggle) {
+                    $('<?php echo $_code ?>_card_token').value = "";
+                } else {
+                    $('<?php echo $_code ?>_card_token').value = "<?php echo $this->getOfflineCardToken() ?>";
+                    $('<?php echo $_code ?>_ip_address').value = "<?php echo $_remoteAddr ?>";
+                }
+            },
+            this);
+
+        },
+
+        disableChildren: function(element, toggle) {
+            var elements = element.select('input, select');
+            elements.each(function(el) {
+                el.disabled = toggle;
+            });
         }
     });
 

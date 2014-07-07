@@ -24,9 +24,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     protected $_formBlockType = 'pinpay/form';
 
-    // Disabled info block
-    //protected $_infoBlockType = 'pinpay/info';
-
     private static $logFile = 'dwyera_pinpay_controller.log';
 
     public function assignData($data)
@@ -38,6 +35,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $cardToken = $data->getCardToken();
         $ipAddress = $data->getIpAddress();
         $offlineTransId = $data->getOfflineTransactionId();
+        $type = $data->getType();
         if (empty($cardToken) || empty($ipAddress)) {
             Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
@@ -47,7 +45,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
 
         // Store the offline transaction ID if supplied
-        if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId)) {
+        if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId) && $type == 'offline') {
             $this->getInfoInstance()->setAdditionalInformation("offline_transaction_id", $offlineTransId);
         }
 
@@ -75,7 +73,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Send authorize request to gateway
      *
-     * @param  Mage_Sales_Model_Order_Payment $payment
+     * @param \Mage_Sales_Model_Order_Payment $payment
      * @param  float $amount
      * @return Dwyera_Pinpay_Model_PaymentMethod
      */
@@ -88,7 +86,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException(Mage::helper('pinpay')->__('Invalid amount for authorization.'));
         }
 
-        if(Mage::app()->getStore()->isAdmin()) {
+        if(Mage::app()->getStore()->isAdmin() && !is_null($payment->getAdditionalInformation('offline_transaction_id'))) {
             $this->_placeOfflineTransaction($payment, $amount);
         } else {
             $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
@@ -222,15 +220,14 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * Requests coming from admin are offline transactions. These don't need to be sent via the PinPayments gateway
      * as they've already been processed.  Simply record the transaction ID supplied by the admin.
      *
-     * @param $payment
+     * @param Mage_Sales_Model_Order_Payment $payment
      * @param $amount
      * @param $transactionId
      */
     protected function _placeOfflineTransaction($payment, $amount) {
         $payment->setAmount($amount);
-
+        $payment->getOrder()->setCustomerNote("Creating offline PinPayments transaction");
         $transactionId = $payment->getAdditionalInformation('offline_transaction_id');
-
         $payment->setCcTransId($transactionId);
         $payment->setTransactionId($transactionId);
     }

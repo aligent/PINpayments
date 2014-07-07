@@ -5,9 +5,6 @@
             <action method="addJs">
                 <script helper="pinpay/getScriptUrl" />
             </action>
-            <action method="addCss">
-                <stylesheet>pinpay/pinpay.css</stylesheet>
-            </action>
         </reference>
     </adminhtml_sales_order_create_index>
 </layout>
