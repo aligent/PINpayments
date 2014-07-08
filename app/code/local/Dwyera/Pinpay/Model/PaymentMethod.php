@@ -16,6 +16,9 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     const OFFLINE_CARD_TOKEN_PLACEHOLDER = "OFFLINE TRANSACTION";
 
+    const ONLINE = 'online';
+    const OFFLINE = 'offline';
+
     /**
      * unique internal payment method identifier
      *
@@ -46,7 +49,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
 
         // Store the offline transaction ID if supplied
-        if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId) && $type == 'offline') {
+        if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId) && $type == self::OFFLINE) {
             $this->getInfoInstance()->setAdditionalInformation("offline_transaction_id", $offlineTransId);
         }
 
@@ -229,7 +232,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     {
         $payment->setAmount($request->getAmount());
 
-        // Simply verify that a valid request type has been sent. Only support capture at the moment.
         switch ($requestType) {
             case self::REQUEST_TYPE_AUTH_ONLY:
             case self::REQUEST_TYPE_AUTH_CAPTURE:

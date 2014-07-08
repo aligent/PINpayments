@@ -17,9 +17,9 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
     <li>
         <label for="payment[type]"><?php echo $this->__('Should this transaction be processed online or offline?') ?> <span class="required">*</span></label>
         <div class="input-box">
-            <input type="radio" id="<?php echo $_code ?>_online" value="online" name="payment[type]" title="<?php echo $this->__('Online Transaction') ?>" onclick="pp.toggleTransactionType(true)" class="radio" disabled="true" />
+            <input type="radio" id="<?php echo $_code ?>_online" value="<?php echo $_method::ONLINE ?>" name="payment[type]" title="<?php echo $this->__('Online Transaction') ?>" onclick="pp.toggleTransactionType(true)" class="radio" disabled="true" />
             <label for="<?php echo $_code ?>_online"><?php echo $this->__('Online') ?></label>
-            <input type="radio" id="<?php echo $_code ?>_offline" value="offline" name="payment[type]" title="<?php echo $this->__('Offline Transaction') ?>" onclick="pp.toggleTransactionType(false)" class="radio validate-one-required" disabled="true" />
+            <input type="radio" id="<?php echo $_code ?>_offline" value="<?php echo $_method::OFFLINE ?>" name="payment[type]" title="<?php echo $this->__('Offline Transaction') ?>" onclick="pp.toggleTransactionType(false)" class="radio validate-one-required" disabled="true" />
             <label for="<?php echo $_code ?>_online"><?php echo $this->__('Offline') ?></label>
         </div>
     </li>
