@@ -61,6 +61,16 @@
         </resources>
     </global>
 
+    <adminhtml>
+        <layout>
+            <updates>
+                <pinpay>
+                    <file>pinpay.xml</file>
+                </pinpay>
+            </updates>
+        </layout>
+    </adminhtml>
+
     <frontend>
         <layout>
             <updates>
@@ -95,14 +105,11 @@
                 <!-- order status for new orders paid by this payment method -->
                 <order_status>pending</order_status>
                 <!-- default title for payment checkout page and order view page -->
-                <title>Credit Card (PinPayment)</title>
+                <title>Credit Card (PinPayments)</title>
                 <production_url>https://api.pin.net.au/1</production_url>
                 <testing_url>https://test-api.pin.net.au/1</testing_url>
                 <test>1</test>
-                <payment_action>authorize</payment_action>
-                <!--<cctypes>AE,VI,MC,DI</cctypes>
-
-                <allowspecific>0</allowspecific>-->
+                <payment_action>authorize_capture</payment_action>
             </pinpay>
         </payment>
     </default>
