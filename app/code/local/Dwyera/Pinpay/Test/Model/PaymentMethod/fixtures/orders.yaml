@@ -119,6 +119,7 @@ eav:
       subtotal_with_discount: 5.0000
       base_subtotal_with_discount: 5.0000
       created_at: "2012-01-19 23:40:27"
+      customer_email: testing@aligent.com.au
     - entity_id: 2
       increment_id: 100009921
       state: "processing"
@@ -136,7 +137,13 @@ eav:
       subtotal_with_discount: 95.0000
       base_subtotal_with_discount: 95.0000
       created_at: "2012-01-19 23:40:27"
+      customer_email: testing@aligent.com.au
 tables:
+  sales/quote:
+    - entity_id: 1
+      customer_email: testing@aligent.com.au
+    - entity_id: 2
+      customer_email: testing@aligent.com.au
   sales/order_payment:
     - entity_id: 1
       parent_id: 1
@@ -144,6 +151,17 @@ tables:
       additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
     - entity_id: 2
       parent_id: 2
+      method: pinpay
+      additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
+  sales/quote_payment:
+    - entity_id: 1
+      payment_id: 1
+      quote_id: 1
+      method: pinpay
+      additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
+    - entity_id: 2
+      payment_id: 2
+      quote_id: 2
       method: pinpay
       additional_information: 'a:2:{s:10:"card_token";s:27:"card_ptkBM3VRh3TuT0PpYMLs0g";s:10:"ip_address";s:13:"203.122.247.5";}'
   sales/payment_transaction:
