@@ -111,6 +111,8 @@ eav:
       customer_id: 1
       applied_rule_ids: ""
       global_currency_code: "AUD"
+      currency_code: "AUD"
+      base_currency_code: "AUD"
       base_to_global_rate: 1.0000
       base_to_quote_rate: 1.0000
       customer_taxvat: ""
@@ -128,7 +130,9 @@ eav:
       grand_total: 100.0000
       customer_id: 1
       applied_rule_ids: ""
-      global_currency_code: "AUD"
+      global_currency_code: "NZD"
+      currency_code: "NZD"
+      base_currency_code: "NZD"
       base_to_global_rate: 1.0000
       base_to_quote_rate: 1.0000
       customer_taxvat: ""

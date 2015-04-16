@@ -229,7 +229,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
          */
         $zendHttpResponse = new Zend_Http_Response($responseCode, array(), $responseValue);
         $paymentMock = $this->getModelMock('pinpay/paymentMethod', array('_postRequest'));
-        
+
         $paymentMock->expects($this->once())->method('_postRequest')
             ->with($this->callback(array($this, 'checkPostParam')),
                 $this->anything())
