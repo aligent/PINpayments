@@ -201,6 +201,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         return $payment->getCcTransId();
     }
 
+    /**
+     * @param Mage_Sales_Model_Order_Payment $payment
+     * @param float $amount
+     * @param String $email
+     * @return Dwyera_Pinpay_Model_Request
+     */
     protected function _buildRequest($payment, $amount, $email)
     {
         $request = Mage::getModel('pinpay/request');
@@ -209,6 +215,9 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
+
+        // Set currency based on order
+        $request->setCurrency($payment->getOrder()->getBaseCurrencyCode());
 
         // Get the transaction ID if set. This will only be the case if a payment has been authorized already
         $token = $this->getPreAuthToken($payment);
