@@ -89,6 +89,30 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $this->model = Mage::getModel("pinpay/paymentMethod");
 
         $this->assertInstanceOf('Dwyera_Pinpay_Model_PaymentMethod', $this->model);
+
+        $this->_mockSessionCookie('customer/session');
+        $this->_mockSessionCookie('admin/session');
+        $this->_mockSessionCookie('adminhtml/session');
+        $this->_mockSessionCookie('core/session');
+        $this->_mockSessionCookie('checkout/session');
+
+        Mage::unregister('_singleton/eav/config');
+    }
+
+
+    /**
+     * Mock session storage because sessions aren't available inside phpUnit.
+     *
+     * @param $vSessionName string Session model alias
+     */
+    protected function _mockSessionCookie($vSessionName){
+        $sessionMock = $this->getModelMock($vSessionName, array('init'));
+        $sessionMock->expects($this->any())
+            ->method('init')
+            ->will($this->returnSelf());
+
+        $this->replaceByMock('singleton', $vSessionName, $sessionMock);
+        $this->replaceByMock('model', $vSessionName, $sessionMock);
     }
 
     /**
@@ -104,7 +128,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $this->orderNumber = $orderNum;
 
         $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
-        $orderPayment = $this->setupOrder($orderNum);
+        $orderPayment = $this->setupOrder($orderNum, $paymentMock);
 
         $resVal = $paymentMock->authorize($orderPayment, $orderVal);
         // the authorize method should return a copy of itself
@@ -124,7 +148,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
     {
         $this->skipPostParamCheck = true;
         $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
-        $orderPayment = $this->setupOrder($orderNum);
+        $orderPayment = $this->setupOrder($orderNum, $paymentMock);
 
         $resVal = $paymentMock->authorize($orderPayment, $orderVal);
         // the authorize method should return a copy of itself
@@ -149,7 +173,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         $this->skipPostParamCheck = true;
 
         $paymentMock = $this->setupAuthorizeMocks($responseValue, $responseCode);
-        $orderPayment = $this->setupOrder($orderNum);
+        $orderPayment = $this->setupOrder($orderNum, $paymentMock);
 
         $paymentMock->authorize($orderPayment, $orderVal);
     }
@@ -167,11 +191,18 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         Mage::getModel('pinpay/paymentMethod')->authorize($orderPayment, $orderVal);
     }
 
-    private function setupOrder($orderNum)
+    private function setupOrder($orderNum, $paymentMethodMock = null)
     {
         $order = Mage::getModel('sales/order')->load($orderNum);
         $orderPayment = Mage::getModel('sales/order_payment')->load($orderNum);
         $orderPayment->setOrder($order);
+
+        $quote = Mage::getModel('sales/quote')->load($orderNum);
+        $orderPayment->setQuote($quote);
+
+        if($paymentMethodMock) {
+            $paymentMethodMock->setInfoInstance($orderPayment);
+        }
         return $orderPayment;
     }
 
@@ -198,6 +229,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
          */
         $zendHttpResponse = new Zend_Http_Response($responseCode, array(), $responseValue);
         $paymentMock = $this->getModelMock('pinpay/paymentMethod', array('_postRequest'));
+
         $paymentMock->expects($this->once())->method('_postRequest')
             ->with($this->callback(array($this, 'checkPostParam')),
                 $this->anything())
@@ -216,5 +248,7 @@ class Dwyera_Pinpay_Test_Model_PaymentMethod extends EcomDev_PHPUnit_Test_Case
         return $this->expected('%s-%s', $this->orderNumber, $this->testNumber)->getData() == $paymentRequest->getData();
 
     }
+
+
 
 }
