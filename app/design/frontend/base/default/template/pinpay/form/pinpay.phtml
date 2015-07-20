@@ -84,15 +84,15 @@ $_billingAddress = $this->getBillingAddress();
 
     <li class="hidden-address-fields">
         <div class="input-box">
-            <label for="<?php echo $_code ?>_address_state" class="required"><em>*</em><?php echo $this->__('State') ?></label>
-            <input type="text" title="<?php echo $this->__('State') ?>" class="input-text required-entry" id="<?php echo $_code ?>_address_state" value="<?php echo $_billingAddress->getRegion() ?>" />
+            <label for="<?php echo $_code ?>_address_state"><?php echo $this->__('State') ?></label>
+            <input type="text" title="<?php echo $this->__('State') ?>" class="input-text" id="<?php echo $_code ?>_address_state" value="<?php echo $_billingAddress->getRegion() ?>" />
         </div>
     </li>
 
     <li class="hidden-address-fields">
         <div class="input-box">
-            <label for="<?php echo $_code ?>_address_postcode" class="required"><em>*</em><?php echo $this->__('Postcode') ?></label>
-            <input type="text" title="<?php echo $this->__('Postcode') ?>" class="input-text required-entry validate-zip-international" id="<?php echo $_code ?>_address_postcode" value="<?php echo $_billingAddress->getPostcode() ?>" />
+            <label for="<?php echo $_code ?>_address_postcode"><?php echo $this->__('Postcode') ?></label>
+            <input type="text" title="<?php echo $this->__('Postcode') ?>" class="input-text validate-zip-international" id="<?php echo $_code ?>_address_postcode" value="<?php echo $_billingAddress->getPostcode() ?>" />
         </div>
     </li>
 
