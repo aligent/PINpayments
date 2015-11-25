@@ -37,4 +37,8 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
         return $method::OFFLINE_CARD_TOKEN_PLACEHOLDER;
     }
 
+    protected function getEnvironment() {
+        return $this->getMethod()->getEnvironment();
+    }
+
 }

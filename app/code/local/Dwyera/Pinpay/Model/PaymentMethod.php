@@ -19,6 +19,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     const ONLINE = 'online';
     const OFFLINE = 'offline';
 
+    const CONFIG_FLAG_ENV = 'payment/pinpay/test';
+
     /**
      * unique internal payment method identifier
      *
@@ -37,16 +39,14 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
 
         $cardToken = $data->getCardToken();
-        $ipAddress = $data->getIpAddress();
         $offlineTransId = $data->getOfflineTransactionId();
         $type = $data->getType();
-        if (empty($cardToken) || empty($ipAddress)) {
-            Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
+        if (empty($cardToken)) {
+            Mage::log('Payment could not be processed. Missing card token', Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
-        $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
 
         // Store the offline transaction ID if supplied
         if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId) && $type == self::OFFLINE) {
@@ -158,7 +158,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function getServiceURL()
     {
-        $isTesting = Mage::getStoreConfig('payment/pinpay/test');
+        $isTesting = Mage::getStoreConfig(self::CONFIG_FLAG_ENV);
         if ($isTesting == true) {
             return Mage::getStoreConfig('payment/pinpay/testing_url');
         } else {
@@ -199,6 +199,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         return true;
     }
 
+    public function getEnvironment() {
+        $isTest = Mage::getStoreConfigFlag(Dwyera_Pinpay_Model_PaymentMethod::CONFIG_FLAG_ENV);
+
+        return $isTest ? 'test' : 'live';
+    }
+
     protected function getPreAuthToken($payment) {
         return $payment->getCcTransId();
     }
@@ -216,7 +222,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             setAmount($request::getAmountInCents($amount))->
             setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
-            setIpAddress($payment->getAdditionalInformation('ip_address'));
+            setIpAddress($payment->getOrder()->getRemoteIp());
 
         // Set currency based on order
         $request->setCurrency($payment->getOrder()->getBaseCurrencyCode());
