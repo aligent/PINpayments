@@ -1,10 +1,8 @@
 
 <?php
 /** @var $this Dwyera_Pinpay_Block_Form */
-
-$_form = $this;
-$_code = $_form->getMethodCode();
-$_method = $_form->getMethod();
+$_code = $this->getMethodCode();
+$_method = $this->getMethod();
 $_billingAddress = $this->getBillingAddress();
 
 ?>
@@ -39,7 +37,7 @@ $_billingAddress = $this->getBillingAddress();
             },
             style: [".CardFields--address_line1 { display: none; }",".CardFields--address_line2 { display: none; }",".CardFieldsGroup--city-state-postcode { display: none; }", ".CardFields input { font-size: 18px; }", ".CardFields label { display: none; }", ".CardFields--expiry input { width: 90px; }", ".CardFields--cvc input { width: 90px; }", ".CardFields--expiry, .CardFields--cvc {display: inline-block; }", ".Errors { color: red; font-size: 12px }"]
         }
-    );
+    , '<?php echo $this->getHostedIframeUrl() ?>');
 
     var PPPayment = Class.create(Payment, {
         save: function($super, validated) {

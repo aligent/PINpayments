@@ -2,6 +2,8 @@
 class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
 {
 
+    const HOSTED_IFRAME_URL = 'https://cdn.pin.net.au/hosted_fields/b1/hosted-fields.html';
+
     protected function _construct()
     {
         parent::_construct();
@@ -39,6 +41,10 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
 
     protected function getEnvironment() {
         return $this->getMethod()->getEnvironment();
+    }
+
+    protected function getHostedIframeUrl() {
+        return self::HOSTED_IFRAME_URL;
     }
 
 }

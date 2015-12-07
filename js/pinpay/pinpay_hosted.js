@@ -6,7 +6,7 @@ var PinpayHosted = Class.create({
   field_container: null,
   iframe: null,
 
-  initialize: function(config){
+  initialize: function(config, iframeUrl){
     this.form = $(config.form_element_id);
     this.field_container = $(config.hosted_fields_element_id);
 
@@ -14,7 +14,7 @@ var PinpayHosted = Class.create({
     this.config = config;
     this.iframe = new Element('iframe',
         {
-          'src': "https://cdn.pin.net.au/hosted_fields/b1/hosted-fields.html",
+          'src': iframeUrl,
           'class': 'pin-iframe'
         });
     Event.observe(this.iframe, "load", this.handleIframeLoad.bind(this));
