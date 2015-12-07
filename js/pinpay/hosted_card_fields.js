@@ -6,20 +6,20 @@ var PinpayHosted = Class.create({
   field_container: null,
   iframe: null,
 
-
   initialize: function(config){
-    debugger;
+    this.form = $(config.form_element_id);
+    this.field_container = $(config.hosted_fields_element_id);
 
-    this.form = document.getElementById(config.form_element_id);
-    this.field_container = document.getElementById(config.hosted_fields_element_id);
 
-    // create the iframe
-    this.iframe = document.createElement('iframe');
     this.config = config;
-    this.iframe.setAttribute('src', "http://pinpayments.github.io/sensis/hosted-fields.html");
+    this.iframe = new Element('iframe',
+        {
+          'src': "https://cdn.pin.net.au/hosted_fields/b1/hosted-fields.html",
+          'class': 'pin-iframe'
+        });
     Event.observe(this.iframe, "load", this.handleIframeLoad.bind(this));
-    this.field_container.appendChild(this.iframe);
     Event.observe(window, 'message', this.receiveMessage.bind(this));
+    this.field_container.insert(this.iframe);
   },
 
   handleIframeLoad: function() {
@@ -43,11 +43,7 @@ var PinpayHosted = Class.create({
       // messages other than 'submit' are card tokens.
       // populate the token field
       $(this.config.token_element).value = e.data;
-      // submit the form (the delay is just for the demo)
-      setTimeout(function () {
-        //form.submit();
-        payment.save(true);
-      }, 1000);
+      payment.save(true);
     }
   }
 

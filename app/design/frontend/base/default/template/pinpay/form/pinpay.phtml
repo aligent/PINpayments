@@ -9,20 +9,11 @@ $_billingAddress = $this->getBillingAddress();
 
 ?>
 
-<!-- normal form-->
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
-
-    <div id="hosted-card-fields1">
+    <div id="hosted-card-fields">
         <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
     </div>
-
-    <li>
-        <div class="buttons-set" id="pinpay-buttons-container">
-
-        <span id="pinpay-please-wait" class="please-wait" style="display: none;">
-            <img src="<?php echo $this->getSkinUrl("/images/opc-ajax-loader.gif")?>" alt="Please wait" title="Validating Card..." class="v-middle">Validating Card...        </span>
-        </div>
-    </li>
+    <a href="#" class="cvv-what-is-this"><?php echo $this->__("What's a CVC?") ?></a>
 </ul>
 <div>
     <?php echo $this->getMethod()->getConfigData('message');?>
@@ -37,7 +28,16 @@ $_billingAddress = $this->getBillingAddress();
             api_env: '<?php echo $this->getEnvironment() ?>', // or 'live',
             api_key: '<?php echo $this->getPublishableKey()?>', // publishable API key
             form_element_id: 'payment_form_<?php echo $_code ?>', // the parent form
-            hosted_fields_element_id: 'hosted-card-fields1' // placeholder for card fields
+            hosted_fields_element_id: 'hosted-card-fields', // placeholder for card fields
+            values: {
+                address_line1: '<?php echo $_billingAddress->getStreet1() ?>',
+                address_line2: '<?php echo $_billingAddress->getStreet2() ?>',
+                address_city: '<?php echo $_billingAddress->getCity() ?>',
+                address_state: '<?php echo $_billingAddress->getRegion() ?>',
+                address_postcode: '<?php echo $_billingAddress->getPostcode() ?>',
+                address_country: '<?php echo $_billingAddress->getCountryModel()->getName() ?>'
+            },
+            style: [".CardFields--address_line1 { display: none; }",".CardFields--address_line2 { display: none; }",".CardFieldsGroup--city-state-postcode { display: none; }", ".CardFields input { font-size: 18px; }", ".CardFields label { display: none; }", ".CardFields--expiry input { width: 90px; }", ".CardFields--cvc input { width: 90px; }", ".CardFields--expiry, .CardFields--cvc {display: inline-block; }", ".Errors { color: red; font-size: 12px }"]
         }
     );
 

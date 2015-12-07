@@ -10,3 +10,17 @@
     padding: 4px 15px 4px 15px;
     border-radius: 3px;
 }
+
+.pin-iframe {
+    border: none;
+    height: 100px;
+    width: 320px;
+}
+
+.hosted-card-fields {
+    width: 320px;
+}
+
+.cvv-what-is-this {
+    font-size: 12px;
+}
