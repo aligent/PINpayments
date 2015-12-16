@@ -5,11 +5,18 @@ var PinpayHosted = Class.create({
   form: null,
   field_container: null,
   iframe: null,
+  successCallback: null,
 
-  initialize: function(config, iframeUrl){
+  /**
+   *
+   * @param config Config array to be passed to iframe
+   * @param iframeUrl The URL of the iframe
+   * @param successCallback An optional callback method that will be called instead of saving the payment method
+   */
+  initialize: function(config, iframeUrl, successCallback){
     this.form = $(config.form_element_id);
     this.field_container = $(config.hosted_fields_element_id);
-
+    this.successCallback = successCallback;
 
     this.config = config;
     this.iframe = new Element('iframe',
@@ -43,7 +50,12 @@ var PinpayHosted = Class.create({
       // messages other than 'submit' are card tokens.
       // populate the token field
       $(this.config.token_element).value = e.data;
-      payment.save(true);
+
+      if(this.successCallback) {
+        this.successCallback();
+      } else {
+        payment.save(true);
+      }
     }
   }
 
