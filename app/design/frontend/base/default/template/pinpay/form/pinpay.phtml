@@ -35,7 +35,7 @@ $_billingAddress = $this->getBillingAddress();
                 address_postcode: '<?php echo $this->jsQuoteEscape($_billingAddress->getPostcode()) ?>',
                 address_country: '<?php echo $this->jsQuoteEscape($_billingAddress->getCountryModel()->getName()) ?>'
             },
-            style: [".CardFields--address_line1 { display: none; }",".CardFields--address_line2 { display: none; }",".CardFieldsGroup--city-state-postcode { display: none; }", ".CardFields input { font-size: 18px; }", ".CardFields label { display: none; }", ".CardFields--expiry input { width: 90px; }", ".CardFields--cvc input { width: 90px; }", ".CardFields--expiry, .CardFields--cvc {display: inline-block; }", ".Errors { color: red; font-size: 12px }"]
+            style: [".CardFields--address_line1 { display: none; }",".CardFields--address_line2 { display: none; }",".CardFieldsGroup--city-state-postcode { display: none; }", ".CardFields input { font-size: 18px; }", ".CardFields--expiry input { width: 90px; }", ".CardFields--cvc input { width: 90px; }", ".CardFields--expiry, .CardFields--cvc {display: inline-block; }", ".Errors { color: red; font-size: 12px }", ".CardFields label:after { content: ':'; }", ".CardFields--expiry { margin-right: 20px}"]
         }
     , '<?php echo $this->getHostedIframeUrl() ?>');
 
