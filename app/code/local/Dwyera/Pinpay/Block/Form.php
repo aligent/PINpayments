@@ -46,12 +46,17 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
     {
         // check where is the order being created
         if (Mage::app()->getStore()->isAdmin()) {
-            $oQuote = Mage::getSingleton('adminhtml/session_quote');
+            $oQuote = Mage::getSingleton('adminhtml/session_quote')->getQuote();
         } else {
             $oQuote = Mage::getSingleton('checkout/session')->getQuote();
         }
 
-        $bEnabled = (bool)Mage::getStoreConfig('payment/pinpay/cctypes_enabled', $oQuote->getStoreId());
+        $iStoreId = null;
+        if ($oQuote) {
+            $iStoreId = $oQuote->getStoreId();
+        }
+
+        $bEnabled = (bool)Mage::getStoreConfig('payment/pinpay/cctypes_enabled', $iStoreId);
         return $bEnabled;
     }
 
