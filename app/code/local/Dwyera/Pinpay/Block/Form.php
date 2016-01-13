@@ -37,4 +37,22 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
         return $method::OFFLINE_CARD_TOKEN_PLACEHOLDER;
     }
 
+    /**
+     * Check if cc type is enabled based on the current quote's store
+     *
+     * @return bool
+     */
+    public function isCcTypeEnabled()
+    {
+        // check where is the order being created
+        if (Mage::app()->getStore()->isAdmin()) {
+            $oQuote = Mage::getSingleton('adminhtml/session_quote');
+        } else {
+            $oQuote = Mage::getSingleton('checkout/session')->getQuote();
+        }
+
+        $bEnabled = (bool)Mage::getStoreConfig('payment/pinpay/cctypes_enabled', $oQuote->getStoreId());
+        return $bEnabled;
+    }
+
 }

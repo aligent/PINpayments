@@ -47,6 +47,7 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
         </div>
     </li>
 
+    <?php if ($this->isCcTypeEnabled()): ?>
     <li style="display: none" class="online" id="c">
         <label for="<?php echo $_code ?>_cc_type"><?php echo $this->__('Credit Card Type') ?> <span class="required">*</span></label>
         <div class="input-box">
@@ -59,6 +60,7 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
             </select>
         </div>
     </li>
+    <?php endif;?>
 
     <li style="display: none" class="online" id="<?php echo $_code ?>_cc_type_exp_div">
         <label for="<?php echo $_code ?>_expiration"><?php echo $this->__('Expiration Date') ?> <span class="required">*</span></label>

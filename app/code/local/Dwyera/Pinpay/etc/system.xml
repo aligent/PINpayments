@@ -47,6 +47,15 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </order_status>
+                        <cctypes_enabled translate="label">
+                            <label>Credit Card Types Enabled</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>35</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                        </cctypes_enabled>
                         <cctypes translate="label">
                             <label>Credit Card Types</label>
                             <frontend_type>multiselect</frontend_type>
@@ -55,6 +64,9 @@
                             <show_in_default>1</show_in_default>
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
+                            <depends>
+                                <cctypes_enabled>1</cctypes_enabled>
+                            </depends>
                         </cctypes>
                         <payment_action translate="label">
                             <label>Payment Action</label>
@@ -106,8 +118,6 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </publishable_key>
-
-
                     </fields>
                 </pinpay>
             </groups>

@@ -29,6 +29,7 @@ $_billingAddress = $this->getBillingAddress();
         </div>
     </li>
 
+    <?php if ($this->isCcTypeEnabled()): ?>
     <li>
         <label for="<?php echo $_code ?>_cc_type" class="required"><em>*</em><?php echo $this->__('Credit Card Type') ?></label>
         <div class="input-box">
@@ -41,6 +42,7 @@ $_billingAddress = $this->getBillingAddress();
             </select>
         </div>
     </li>
+    <?php endif;?>
 
     <li id="<?php echo $_code ?>_cc_type_exp_div">
         <label for="<?php echo $_code ?>_expiration" class="required"><em>*</em><?php echo $this->__('Expiration Date') ?></label>
