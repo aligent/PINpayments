@@ -177,12 +177,15 @@ $_billingAddress = $this->getBillingAddress();
                 }
                 catch(err){
                     try{
+                        //if property is not defined concatenating it with string results in 'undefinedDefinedString'
+                        var errorDescription = response.error_description ? response.error_description : '';
+                        var errorTitle = response.error ? response.error : '';
                         //pin payment error response in cases when api keys are not right
                         //if either error or description is present construct error message, otherwise use default message
                         // https://pin.net.au/docs/api look at Errors section of page
-                        if (response.error || response.error_description){
-                            var separator = (response.error && response.error_description) ? ': ' : '';
-                            message = response.error + separator + response.error_description;
+                        if (errorTitle|| errorDescription){
+                            var separator = (errorTitle && errorDescription) ? ': ' : '';
+                            message = errorTitle + separator + errorDescription;
                         }
                     }
                     catch(error){
