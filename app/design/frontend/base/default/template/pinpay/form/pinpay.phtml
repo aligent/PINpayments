@@ -169,7 +169,27 @@ $_billingAddress = $this->getBillingAddress();
 
             } else {
                 checkout.setLoadWaiting(false);
-                alert(response.messages[0].message);
+                var message;
+                message = 'Unable to process pin payment. Please contact support';
+                try {
+                    //non-api error messages
+                    message = response.messages[0].message;
+                }
+                catch(err){
+                    try{
+                        //pin payment error response in cases when api keys are not right
+                        //if either error or description is present construct error message, otherwise use default message
+                        // https://pin.net.au/docs/api look at Errors section of page
+                        if (response.error || response.error_description){
+                            var separator = (response.error && response.error_description) ? ': ' : '';
+                            message = response.error + separator + response.error_description;
+                        }
+                    }
+                    catch(error){
+                        console.log(error);
+                    }
+                }
+                alert(message);
             }
         }
     });
