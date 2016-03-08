@@ -377,7 +377,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     {
         return array(
             'maxredirects' => self::MAX_REDIRECTS,
-            'timeout' => self::TIMEOUT,
+            'timeout' => Mage::helper('pinpay')->getTimeout()
         );
     }
 
