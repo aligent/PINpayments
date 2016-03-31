@@ -29,7 +29,7 @@ $_billingAddress = $this->getBillingAddress();
         </div>
     </li>
 
-    <?php if ($this->isCcTypeEnabled()): ?>
+    <?php if ($this->isCcTypeEnabled() && $this->isCcTypeDisplayedInFrontend()): ?>
     <li>
         <label for="<?php echo $_code ?>_cc_type" class="required"><em>*</em><?php echo $this->__('Credit Card Type') ?></label>
         <div class="input-box">

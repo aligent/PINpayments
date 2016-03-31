@@ -56,6 +56,30 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </cctypes_enabled>
+                        <cctypes_frontend_enabled translate="label">
+                            <label>Credit Card Types In Frontend Checkout</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>36</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <cctypes_enabled>1</cctypes_enabled>
+                            </depends>
+                        </cctypes_frontend_enabled>
+                        <cctypes_backend_enabled translate="label">
+                            <label>Credit Card Types In Admin Checkout</label>
+                            <frontend_type>select</frontend_type>
+                            <source_model>adminhtml/system_config_source_yesno</source_model>
+                            <sort_order>37</sort_order>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <depends>
+                                <cctypes_enabled>1</cctypes_enabled>
+                            </depends>
+                        </cctypes_backend_enabled>
                         <cctypes translate="label">
                             <label>Credit Card Types</label>
                             <frontend_type>multiselect</frontend_type>

@@ -47,7 +47,7 @@ $_remoteAddr = Mage::helper('core/http')->getRemoteAddr(false);
         </div>
     </li>
 
-    <?php if ($this->isCcTypeEnabled()): ?>
+    <?php if ($this->isCcTypeEnabled() && $this->isCcTypeDisplayedInBackend()): ?>
     <li style="display: none" class="online" id="c">
         <label for="<?php echo $_code ?>_cc_type"><?php echo $this->__('Credit Card Type') ?> <span class="required">*</span></label>
         <div class="input-box">
