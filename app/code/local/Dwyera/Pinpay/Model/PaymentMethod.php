@@ -312,7 +312,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $client->setConfig($this->_getHttpConfig());
         $client->setAuth($this->getSecretKey(), '');
 
-        if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE || self::REQUEST_TYPE_AUTH_ONLY) {
+        if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE || $requestType == self::REQUEST_TYPE_AUTH_ONLY) {
             $url .= "charges";
             $client->setMethod($client::POST);
             $requestProps = $request->getData();
