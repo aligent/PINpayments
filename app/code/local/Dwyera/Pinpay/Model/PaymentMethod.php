@@ -172,6 +172,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * then be processed manually.  No action is taken on the actual PinPayments charge. The Magento admin is
      * responsible for reprocessing the transaction.
      *
+     * @deprecated Orders no longer placed in fraud review
      * @param Mage_Payment_Model_Info $payment
      * @return bool
      */
@@ -191,6 +192,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      * that are flagged as fraudulent are immediately denied.  This method simply cancels the Magento order.
      *
      * @param Mage_Payment_Model_Info $payment
+     * @deprecated Orders no longer placed in fraud review
      * @return bool
      */
     public function denyPayment(Mage_Payment_Model_Info $payment){
@@ -261,13 +263,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 $payment->setCcTransId('' . $result->getResponseToken());
                 $payment->setTransactionId('' . $result->getResponseToken());
                 return true;
-            case $result::RESPONSE_CODE_SUSP_FRAUD:
-                $payment->setIsTransactionPending(true);
-                $payment->setIsFraudDetected(true);
-                $payment->setCcTransId('' . $result->getErrorToken());
-                $payment->setTransactionId('' . $result->getErrorToken());
-                return true;
             default:
+                // Fraud review orders are now simply treated as a payment failure. No funds are captured by Pin
                 Mage::log('Payment could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
                 Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription() . self::RESPONSE_APPEND_MSG)));
         }
@@ -381,7 +378,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     {
         return array(
             'maxredirects' => self::MAX_REDIRECTS,
-            'timeout' => self::TIMEOUT,
+            'timeout' => Mage::helper('pinpay')->getTimeout()
         );
     }
 

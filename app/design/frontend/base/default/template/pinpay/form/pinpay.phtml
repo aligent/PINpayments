@@ -142,8 +142,15 @@ $_billingAddress = $this->getBillingAddress();
 
         initialize: function(){
             Pin.setPublishableKey("<?php echo $this->getPublishableKey()?>");
+            this.attachValidationCallBackFunction('payment_form_<?php echo $_code ?>');
         },
-
+        attachValidationCallBackFunction: function(containerId){
+            var cssSelector = '#' + containerId + ' .required-entry';
+            //attach validation callback for all the required pinpay hidden elements
+            $$(cssSelector).each(function(requiredElement) {
+                requiredElement.callbackFunction = "pinPaymentValidationCallBack";
+            }.bind(this));
+        },
         validatePinPayForm: function() {
             var validator = new Validation(payment.form);
             if (!validator.validate()) {
@@ -184,7 +191,30 @@ $_billingAddress = $this->getBillingAddress();
 
             } else {
                 checkout.setLoadWaiting(false);
-                alert(response.messages[0].message);
+                var message;
+                message = 'Unable to process pin payment. Please contact support';
+                try {
+                    //non-api error messages
+                    message = response.messages[0].message;
+                }
+                catch(err){
+                    try{
+                        //if property is not defined concatenating it with string results in 'undefinedDefinedString'
+                        var errorDescription = response.error_description ? response.error_description : '';
+                        var errorTitle = response.error ? response.error : '';
+                        //pin payment error response in cases when api keys are not right
+                        //if either error or description is present construct error message, otherwise use default message
+                        // https://pin.net.au/docs/api look at Errors section of page
+                        if (errorTitle|| errorDescription){
+                            var separator = (errorTitle && errorDescription) ? ': ' : '';
+                            message = errorTitle + separator + errorDescription;
+                        }
+                    }
+                    catch(error){
+                        console.log(error);
+                    }
+                }
+                alert(message);
             }
         }
     });
@@ -210,4 +240,23 @@ $_billingAddress = $this->getBillingAddress();
     // override the default payment class
     payment = new PPPayment('co-payment-form', '<?php echo $this->getUrl('checkout/onepage/savePayment') ?>');
     //]]>
+    /**
+     * prototype callback works only with global name space function
+     * @see Validator::updateCallback()
+     *    eval(elm.callbackFunction+'(\''+elm.id+'\',\''+status+'\')');
+     *
+     * @param elementId
+     * @param status
+     */
+    window.pinPaymentValidationCallBack = function (elementId, status){
+        if (status == 'failed'){
+            var element = $(elementId);
+            var title  = element.title ? element.title : element.id;
+            var message = 'Pin pay requires ' + title + ' for payment';
+            if (!title){
+                message = "Please provide all fields required by pin pay";
+            }
+            alert(message);
+        }
+    }
 </script>

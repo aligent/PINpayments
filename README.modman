@@ -5,7 +5,7 @@
 To install this module in a Magento site
 ========================================
 * From the root of your Magento installation
-** modman clone git@git.assembla.com:aligent.pinpay.git
+** modman clone git@github.com:aligent/PINpayments.git
 
 Notes
 =====

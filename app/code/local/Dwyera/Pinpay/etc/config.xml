@@ -110,6 +110,7 @@
                 <testing_url>https://test-api.pin.net.au/1</testing_url>
                 <test>1</test>
                 <payment_action>authorize_capture</payment_action>
+                <time_out>30</time_out>
             </pinpay>
         </payment>
     </default>
