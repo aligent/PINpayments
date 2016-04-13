@@ -37,4 +37,66 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
         return $method::OFFLINE_CARD_TOKEN_PLACEHOLDER;
     }
 
+    /**
+     * Get quote from session
+     *
+     * @return Mage_Sales_Model_Quote
+     */
+    protected function _getSessionQuote()
+    {
+        if (Mage::app()->getStore()->isAdmin()) {
+            $oQuote = Mage::getSingleton('adminhtml/session_quote')->getQuote();
+        } else {
+            $oQuote = Mage::getSingleton('checkout/session')->getQuote();
+        }
+        return $oQuote;
+    }
+
+    /**
+     * Get store_id from quote
+     *
+     * @return int|null
+     */
+    protected function _getQuoteStoreId()
+    {
+        $oQuote = $this->_getSessionQuote();
+        $iStoreId = null;
+        if ($oQuote && $oQuote->getId()) {
+            $iStoreId = $oQuote->getStoreId();
+        }
+        return $iStoreId;
+    }
+
+    /**
+     * Check if cc type is enabled based on the current quote's store
+     *
+     * @return bool
+     */
+    public function isCcTypeEnabled()
+    {
+        // check where is the order being created
+        return Mage::getStoreConfigFlag('payment/pinpay/cctypes_enabled', $this->_getQuoteStoreId());
+    }
+
+    /**
+     * Check if cc type is enabled in frontend checkout
+     *
+     * @return bool
+     */
+    public function isCcTypeDisplayedInFrontend()
+    {
+        // No need to check store_id of current quote for frontend
+        return Mage::getStoreConfigFlag('payment/pinpay/cctypes_frontend_enabled');
+    }
+
+    /**
+     * Check if cc type is enabled in backend checkout
+     *
+     * @return bool
+     */
+    public function isCcTypeDisplayedInBackend()
+    {
+        // Need to check store_id of current quote
+        return Mage::getStoreConfigFlag('payment/pinpay/cctypes_backend_enabled', $this->_getQuoteStoreId());
+    }
 }

@@ -47,6 +47,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         // Store the authorised card token and customer IP
         $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
+        $this->getInfoInstance()->setData("cc_type", $data->getCcType());
 
         // Store the offline transaction ID if supplied
         if(Mage::app()->getStore()->isAdmin() && !empty($offlineTransId) && $type == self::OFFLINE) {
