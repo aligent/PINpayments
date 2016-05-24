@@ -405,7 +405,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     /**
      * Can refund online?
      */
-    protected $_canRefund = false;
+    protected $_canRefund = true;
 
     /**
      * Can void transactions online?
