@@ -166,6 +166,14 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
         }
     }
 
+    /**
+     * Similar to get getResponseToken but skip check success response
+     * (Inconsistency in PIN PAYMENT API)
+     */
+    public function getRefundToken() {
+        return $this->msgObj->response->token;
+    }
+
     public function isSuccessResponse()
     {
         return isset($this->msgObj->response) && $this->msgObj->response->success;

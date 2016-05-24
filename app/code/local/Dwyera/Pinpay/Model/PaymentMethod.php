@@ -6,6 +6,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     const REQUEST_TYPE_AUTH_ONLY    = 'AUTH_ONLY';
     const REQUEST_TYPE_CAPTURE_ONLY = 'CAPTURE_ONLY';
 
+    const REQUEST_TYPE_REFUND = 'REFUND';
+
     const MAX_REDIRECTS = 0;
 
     const TIMEOUT = 30;
@@ -231,6 +233,19 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     }
 
     /**
+     * Build request object for refund api call. Inconsistency in PinPayment API made it difficult to reuse _buildRequest
+     * @param $payment
+     * @param $amount
+     * @return false|Mage_Core_Model_Abstract
+     */
+    protected function _buildRefundRequest($payment, $amount) {
+        $request = Mage::getModel('pinpay/request');
+        $request->setAmount($request::getAmountInCents($amount));
+        $request->setChargeToken($payment->getCcTransId());
+        return $request;
+    }
+
+    /**
      * Send request with new payment to PinPayments gateway
      *
      * @param Mage_Payment_Model_Info $payment
@@ -268,6 +283,47 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 Mage::log('Payment could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
                 Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription() . self::RESPONSE_APPEND_MSG)));
         }
+    }
+
+    /**
+     * Process refund through PinPayment online
+     * @param Varien_Object $payment
+     * @param float $amount
+     * @return $this
+     * @throws Mage_Core_Exception
+     */
+    public function refund(Varien_Object $payment, $amount)
+    {
+        if (!$this->canRefund()) {
+            Mage::throwException(Mage::helper('payment')->__('Refund action is not available.'));
+        }
+
+        if ($payment->getAmountPaid() - $payment->getAmountRefunded() < $amount) {
+            Mage::throwException(Mage::helper('payment')->__('Invalid refund amount'));
+        }
+
+        /* Check transaction id */
+        $creditMemo = Mage::registry('current_creditmemo');
+        if (!$creditMemo->getInvoice()->getTransactionId()) {
+            Mage::throwException(Mage::helper('payment')->__('Invalid transaction id'));
+        }
+
+        /* Refund online through PinPayment gateway*/
+        $refundRequest = $this->_buildRefundRequest($payment, $amount);
+        $httpResponse = $this->_postRequest($refundRequest, self::REQUEST_TYPE_REFUND);
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        switch ($result->getGatewayResponseStatus()) {
+            case $result::RESPONSE_CODE_APPROVED:
+                // Sets the response token
+                $payment->setRefundTransactionId(''. $result->getRefundToken());
+                return $this;
+            default:
+                Mage::log('Refund could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
+                Mage::throwException((Mage::helper('pinpay')->__($result->getErrorDescription() . self::RESPONSE_APPEND_MSG)));
+        }
+
+        return $this;
     }
 
     /**
@@ -332,6 +388,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $url .= "charges/" . $request->getAuthToken() . "/capture";
             // Tell Pin to only authorize the funds
             $client->setMethod($client::PUT);
+        } else if ($requestType == self::REQUEST_TYPE_REFUND) {
+            $url .= "charges/" . $request->getChargeToken() . "/refunds";
+            $client->setMethod($client::POST);
+            $client->setParameterPost('amount', $request->getAmount());
         } else {
             throw new InvalidArgumentException("Invalid request type of $requestType");
         }
