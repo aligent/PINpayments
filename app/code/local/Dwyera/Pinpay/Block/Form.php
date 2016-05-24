@@ -2,7 +2,7 @@
 class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
 {
 
-    const HOSTED_IFRAME_URL = 'https://cdn.pin.net.au/hosted_fields/b2/hosted-fields.html';
+    const HOSTED_IFRAME_URL = 'https://cdn.pin.net.au/hosted_fields/b4/hosted-fields.html';
 
     protected function _construct()
     {
