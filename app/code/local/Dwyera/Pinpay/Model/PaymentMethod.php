@@ -408,6 +408,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     protected $_canRefund = true;
 
     /**
+     * Can partially refund an invoice?
+     */
+    protected  $_canRefundInvoicePartial = true;
+
+    /**
      * Can void transactions online?
      */
     protected $_canVoid = false;
