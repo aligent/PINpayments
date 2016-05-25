@@ -316,7 +316,16 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         switch ($result->getGatewayResponseStatus()) {
             case $result::RESPONSE_CODE_APPROVED:
                 // Sets the response token
+                /* @var $payment Mage_Sales_Model_Order_Payment */
                 $payment->setRefundTransactionId(''. $result->getRefundToken());
+                $payment->setAmount($amount);
+                if ($result->getRefundToken() != $payment->getParentTransactionId()) {
+                    $payment->setTransactionId($result->getRefundToken());
+                }
+                $shouldCloseCaptureTransaction = $payment->getOrder()->canCreditmemo() ? 0 : 1;
+                $payment
+                    ->setIsTransactionClosed(1)
+                    ->setShouldCloseParentTransaction($shouldCloseCaptureTransaction);
                 return $this;
             default:
                 Mage::log('Refund could not be processed. ' . $result->getErrorDescription(), Zend_Log::INFO, self::$logFile);
