@@ -297,8 +297,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         if (!$this->canRefund()) {
             Mage::throwException(Mage::helper('payment')->__('Refund action is not available.'));
         }
-
-        if ($payment->getAmountPaid() - $payment->getAmountRefunded() < $amount) {
+	/* Rounding error may occur, checking if the differences is not less than 0.5c  */
+        if ($amount - $payment->getAmountPaid() - $payment->getAmountRefunded() >= 0.005) {
             Mage::throwException(Mage::helper('payment')->__('Invalid refund amount'));
         }
 
