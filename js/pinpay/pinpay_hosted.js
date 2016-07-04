@@ -42,6 +42,11 @@ var PinpayHosted = Class.create({
   },
 
   receiveMessage: function(e) {
+    // Make sure we're only getting messages from PIN related sources.
+    if (e.origin != "https://cdn.pin.net.au") {
+      return;
+    }
+    
     // if the user presses the enter key in the iframe form,
     // we'll receive a 'submit' message here.
     if (e.data.lastIndexOf('submit', 0) === 0) {
