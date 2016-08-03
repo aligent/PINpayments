@@ -21,6 +21,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     const CONFIG_FLAG_ENV = 'payment/pinpay/test';
 
+    const CONFIG_PREFIX_DESC = 'payment/pinpay/description_prefix';
+
     /**
      * unique internal payment method identifier
      *
@@ -217,10 +219,16 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     protected function _buildRequest($payment, $amount, $email)
     {
+        $sDescPrefix = Mage::getStoreConfig(self::CONFIG_PREFIX_DESC);
+
+        if($sDescPrefix){
+            $sDescPrefix .= ' ';
+        }
+
         $request = Mage::getModel('pinpay/request');
         $request->setEmail($email)->
             setAmount($request::getAmountInCents($amount))->
-            setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
+            setDescription($sDescPrefix . "Quote #:" . $payment->getOrder()->getRealOrderId())->
             setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getOrder()->getRemoteIp());
 
