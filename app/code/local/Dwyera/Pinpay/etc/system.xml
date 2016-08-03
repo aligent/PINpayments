@@ -97,6 +97,15 @@
                             <show_in_website>1</show_in_website>
                             <show_in_store>0</show_in_store>
                         </payment_action>
+                        <description_prefix translate="label">
+                            <label>Description Prefix</label>
+                            <comment>Additional tag to use in transaction description.</comment>
+                            <show_in_default>1</show_in_default>
+                            <show_in_website>1</show_in_website>
+                            <show_in_store>0</show_in_store>
+                            <sort_order>20</sort_order>
+                            <frontend_type>text</frontend_type>
+                        </description_prefix>
                     </fields>
                 </pinpay>
             </groups>
