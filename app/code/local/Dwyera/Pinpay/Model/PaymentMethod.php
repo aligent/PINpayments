@@ -112,12 +112,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function capture(Varien_Object $payment, $amount)
     {
-        $emulatedId = null;
-        $initialEnvironmentInfo = null;
-        if(Mage::app()->getStore()->isAdmin()) {
-            $emulatedId = $payment->getOrder()->getStore()->getCode();
-            $initialEnvironmentInfo = Mage::getSingleton('core/app_emulation')->startEnvironmentEmulation($emulatedId);
-        }
         parent::capture($payment, $amount);
 
         if ($amount <= 0) {
@@ -137,10 +131,6 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
             $request = $this->_buildRequest($payment, $amount, $this->getCustomerEmail());
             $this->_place($payment, $requestType, $request);
-        }
-
-        if($emulatedId) {
-            Mage::getSingleton('core/app_emulation')->stopEnvironmentEmulation($initialEnvironmentInfo);
         }
 
         return $this;
