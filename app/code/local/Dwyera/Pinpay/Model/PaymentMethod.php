@@ -112,6 +112,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function capture(Varien_Object $payment, $amount)
     {
+        $emulatedId = null;
+        $initialEnvironmentInfo = null;
+        if(Mage::app()->getStore()->isAdmin()) {
+            $emulatedId = $payment->getOrder()->getStore()->getCode();
+            $initialEnvironmentInfo = Mage::getSingleton('core/app_emulation')->startEnvironmentEmulation($emulatedId);
+        }
         parent::capture($payment, $amount);
 
         if ($amount <= 0) {
@@ -133,6 +139,10 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $this->_place($payment, $requestType, $request);
         }
 
+        if($emulatedId) {
+            Mage::getSingleton('core/app_emulation')->stopEnvironmentEmulation($initialEnvironmentInfo);
+        }
+
         return $this;
     }
 
@@ -142,7 +152,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function getSecretKey()
     {
-        return Mage::getStoreConfig('payment/pinpay/secret_key');
+        $storeCode = null;
+        if(Mage::app()->getStore()->isAdmin()) {
+            $storeCode = Mage::getSingleton('adminhtml/session_quote')->getStore()->getCode();
+        }
+        return Mage::getStoreConfig('payment/pinpay/secret_key', $storeCode);
     }
 
     /**
@@ -151,7 +165,11 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function getPublishableKey()
     {
-        return Mage::getStoreConfig('payment/pinpay/publishable_key');
+        $storeCode = null;
+        if(Mage::app()->getStore()->isAdmin()) {
+            $storeCode = Mage::getSingleton('adminhtml/session_quote')->getStore()->getCode();
+        }
+        return Mage::getStoreConfig('payment/pinpay/publishable_key', $storeCode);
     }
 
     /**
@@ -161,11 +179,15 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     public function getServiceURL()
     {
-        $isTesting = Mage::getStoreConfig('payment/pinpay/test');
+        $storeCode = null;
+        if(Mage::app()->getStore()->isAdmin()) {
+            $storeCode = Mage::getSingleton('adminhtml/session_quote')->getStore()->getCode();
+        }
+        $isTesting = Mage::getStoreConfig('payment/pinpay/test', $storeCode);
         if ($isTesting == true) {
-            return Mage::getStoreConfig('payment/pinpay/testing_url');
+            return Mage::getStoreConfig('payment/pinpay/testing_url', $storeCode);
         } else {
-            return Mage::getStoreConfig('payment/pinpay/production_url');
+            return Mage::getStoreConfig('payment/pinpay/production_url', $storeCode);
         }
     }
 
