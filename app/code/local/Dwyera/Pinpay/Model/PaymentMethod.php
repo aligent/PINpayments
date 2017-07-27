@@ -39,23 +39,26 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
+        $request = Mage::getModel('pinpay/request');
+        $customerTokenizationEnabled = $request::iscustomerTokenizationEnabled();
+        $customerToken = $data->getCustomerToken();
 
         $customerData = $this->getCustomer();
-        $customerToken = $data->getCustomerToken();
-        if($customerData != false && $customerToken ==""){
-            if($data->getData('save_card_details') == "true"){
-                $customerTokenDetails = $this->saveCustomer($data);
+
+
+        if($customerTokenizationEnabled && $customerData != false && $customerToken ==""){
+            if ($data->getData('save_card_details') == "true") {
+                $customerTokenDetails = $this->getCustomerToken($data);
                 $customerToken = $customerTokenDetails->getcustomerToken();
-                if($customerToken!=""){
+                if ($customerToken != "") {
                     $customerData->setData('pinpayment_customer_token', $customerToken);
                 }
-
             }
         }
 
+
         $cardToken = $data->getCardToken();
         $ipAddress = $data->getIpAddress();
-//        $ipAddress = "10.0.0.1";
         $offlineTransId = $data->getOfflineTransactionId();
         $type = $data->getType();
         if ((empty($cardToken) && empty($customerToken)) || empty($ipAddress)) {
@@ -63,7 +66,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
         // Store the authorised card token and customer IP
-        if($customerToken !="" && $customerData!= false){
+        if($customerToken !="" && $customerData!= false && $customerTokenizationEnabled){
             $this->getInfoInstance()->setAdditionalInformation("customer_token", $customerToken);
         }else{
             $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
@@ -99,7 +102,13 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     }
 
 
-    public function saveCustomer($data){
+    /**
+     * @param $data
+     * @return Dwyera_Pinpay_Model_Result
+     * 
+     * Using this function to get the customer token and then use the customer token for future purchases. 
+     */
+    public function getCustomerToken($data){
         $request =  $this->_buildCustomerRequest($data);
         $httpResponse = $this->_postRequest($request, self::REQUEST_TYPE_CUSTOMER);
         $result = Mage::getModel("pinpay/result", $httpResponse);
@@ -107,12 +116,24 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         return $result;
     }
 
+    /**
+     * @param $data
+     * @return Dwyera_Pinpay_Model_Request
+     * 
+     * This function is used to build the customer request for API call to get the customer token .
+     */
     protected function _buildCustomerRequest($data) {
         $request = Mage::getModel('pinpay/request');
         $request->setEmail($this->getCustomerEmail());
         $request->setCardToken($data->getData('card_token'));
         return $request;
     }
+
+    /**
+     * @return bool|Mage_Customer_Model_Customer
+     * 
+     * This just returns customer data if they are logged in. 
+     */
     protected function getCustomer() {
 
         if(empty($email) && Mage::getSingleton('customer/session')->isLoggedIn()) {
@@ -469,6 +490,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $client->setMethod($client::POST);
             $client->setParameterPost('amount', $request->getAmount());
         } else if($requestType == self::REQUEST_TYPE_CUSTOMER){
+            
+            //If the request type is customer, then we will need to send email and card token as post parameters to receive customer token back. 
             $url .= "customers";
             $client->setMethod($client::POST);
             $client->setParameterPost('email', $request->getData('email'));
