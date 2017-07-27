@@ -330,9 +330,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request->setChargeToken($payment->getCcTransId());
         return $request;
     }
-
-
-
+    
     /**
      * Send request with new payment to PinPayments gateway
      *
