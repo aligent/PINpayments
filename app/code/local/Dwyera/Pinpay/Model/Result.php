@@ -165,6 +165,14 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
             throw new Dwyera_Pinpay_Model_ResponseParseException;
         }
     }
+    public function getCustomerToken()
+    {
+        if ($this->msgObj->response->token) {
+            return $this->msgObj->response->token;
+        } else {
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+    }
 
     /**
      * Similar to get getResponseToken but skip check success response

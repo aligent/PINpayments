@@ -7,6 +7,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     const REQUEST_TYPE_CAPTURE_ONLY = 'CAPTURE_ONLY';
 
     const REQUEST_TYPE_REFUND = 'REFUND';
+    const REQUEST_TYPE_CUSTOMER = 'CUSTOMER';
 
     const MAX_REDIRECTS = 0;
 
@@ -38,16 +39,36 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
+
+        $customerData = $this->getCustomer();
+        $customerToken = $data->getCustomerToken();
+        if($customerData != false && $customerToken ==""){
+            if($data->getData('save_card_details') == "true"){
+                $customerTokenDetails = $this->saveCustomer($data);
+                $customerToken = $customerTokenDetails->getcustomerToken();
+                if($customerToken!=""){
+                    $customerData->setData('pinpayment_customer_token', $customerToken);
+                }
+
+            }
+        }
+
         $cardToken = $data->getCardToken();
         $ipAddress = $data->getIpAddress();
+//        $ipAddress = "10.0.0.1";
         $offlineTransId = $data->getOfflineTransactionId();
         $type = $data->getType();
-        if (empty($cardToken) || empty($ipAddress)) {
+        if ((empty($cardToken) && empty($customerToken)) || empty($ipAddress)) {
             Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
         // Store the authorised card token and customer IP
-        $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
+        if($customerToken !="" && $customerData!= false){
+            $this->getInfoInstance()->setAdditionalInformation("customer_token", $customerToken);
+        }else{
+            $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
+        }
+
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
         $this->getInfoInstance()->setData("cc_type", $data->getCcType());
 
@@ -75,6 +96,31 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
 
         return $this;
+    }
+
+
+    public function saveCustomer($data){
+        $request =  $this->_buildCustomerRequest($data);
+        $httpResponse = $this->_postRequest($request, self::REQUEST_TYPE_CUSTOMER);
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        return $result;
+    }
+
+    protected function _buildCustomerRequest($data) {
+        $request = Mage::getModel('pinpay/request');
+        $request->setEmail($this->getCustomerEmail());
+        $request->setCardToken($data->getData('card_token'));
+        return $request;
+    }
+    protected function getCustomer() {
+
+        if(empty($email) && Mage::getSingleton('customer/session')->isLoggedIn()) {
+            $customer = Mage::getSingleton("customer/session")->getCustomer();
+            return $customer;
+        }
+        return false;
+
     }
 
     /**
@@ -230,8 +276,15 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request->setEmail($email)->
             setAmount($request::getAmountInCents($amount))->
             setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
-            setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
+
+
+        if($payment->getAdditionalInformation("customer_token")!=""){
+            $request->setCustomerToken($payment->getAdditionalInformation("customer_token"));
+        }else{
+            $request->setCardToken($payment->getAdditionalInformation("card_token"));
+        }
+
 
         // Set currency based on order
         $request->setCurrency($payment->getOrder()->getBaseCurrencyCode());
@@ -256,6 +309,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request->setChargeToken($payment->getCcTransId());
         return $request;
     }
+
+
 
     /**
      * Send request with new payment to PinPayments gateway
@@ -390,7 +445,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $client->setConfig($this->_getHttpConfig());
         $client->setAuth($this->getSecretKey(), '');
 
-        if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE || $requestType == self::REQUEST_TYPE_AUTH_ONLY) {
+        if($requestType == self::REQUEST_TYPE_AUTH_CAPTURE || $requestType == self::REQUEST_TYPE_AUTH_ONLY ) {
             $url .= "charges";
             $client->setMethod($client::POST);
             $requestProps = $request->getData();
@@ -413,6 +468,12 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $url .= "charges/" . $request->getChargeToken() . "/refunds";
             $client->setMethod($client::POST);
             $client->setParameterPost('amount', $request->getAmount());
+        } else if($requestType == self::REQUEST_TYPE_CUSTOMER){
+            $url .= "customers";
+            $client->setMethod($client::POST);
+            $client->setParameterPost('email', $request->getData('email'));
+            $client->setParameterPost('card_token', $request->getData('card_token'));
+
         } else {
             throw new InvalidArgumentException("Invalid request type of $requestType");
         }
