@@ -174,6 +174,15 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
         }
     }
 
+    public function getPrimaryCardDisplayNumber()
+    {
+        if ($this->msgObj->response->card->display_number) {
+            return $this->msgObj->response->card->display_number;
+        } else {
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+    }
+
     /**
      * Similar to get getResponseToken but skip check success response
      * (Inconsistency in PIN PAYMENT API)

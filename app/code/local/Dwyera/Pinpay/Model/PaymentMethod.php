@@ -39,19 +39,27 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
-        $request = Mage::getModel('pinpay/request');
-        $customerTokenizationEnabled = $request::iscustomerTokenizationEnabled();
+        $block = new Dwyera_Pinpay_Block_Form;
+        $customerTokenizationEnabled = $block->iscustomerTokenizationEnabled();
         $customerToken = $data->getCustomerToken();
 
         $customerData = $this->getCustomer();
 
 
-        if($customerTokenizationEnabled && $customerData != false && $customerToken ==""){
-            if ($data->getData('save_card_details') == "true") {
+        if($customerTokenizationEnabled && $customerData != false ){
+            if ($data->getData('card_action') == "save_card" &&  $customerToken =="") {
                 $customerTokenDetails = $this->getCustomerToken($data);
                 $customerToken = $customerTokenDetails->getcustomerToken();
                 if ($customerToken != "") {
                     $customerData->setData('pinpayment_customer_token', $customerToken);
+                    $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                }
+            }else if ($customerToken!="" && $data->getData('card_action') == "update_new_card"){
+                $customerTokenDetails = $this->updateCustomerDetails($data);
+                $customerToken = $customerTokenDetails->getcustomerToken();
+                if ($customerToken != "") {
+                    $customerData->setData('pinpayment_customer_token', $customerToken);
+                    $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
                 }
             }
         }
@@ -118,14 +126,32 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
 
     /**
      * @param $data
+     * @return Dwyera_Pinpay_Model_Result
+     *
+     * Use this function to update the primary card using new card token
+     */
+    public function updateCustomerDetails($data){
+        $request =  $this->_buildCustomerRequest($data, true);
+        $httpResponse = $this->_postRequest($request, self::REQUEST_TYPE_CUSTOMER);
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        return $result;
+    }
+
+
+    /**
+     * @param $data
      * @return Dwyera_Pinpay_Model_Request
      * 
      * This function is used to build the customer request for API call to get the customer token .
      */
-    protected function _buildCustomerRequest($data) {
+    protected function _buildCustomerRequest($data, $customer_token=false) {
         $request = Mage::getModel('pinpay/request');
         $request->setEmail($this->getCustomerEmail());
         $request->setCardToken($data->getData('card_token'));
+        if($customer_token){
+            $request->setCustomerToken($data->getData('customer_token'));
+        }
         return $request;
     }
 
@@ -490,8 +516,15 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         } else if($requestType == self::REQUEST_TYPE_CUSTOMER){
             
             //If the request type is customer, then we will need to send email and card token as post parameters to receive customer token back. 
-            $url .= "customers";
-            $client->setMethod($client::POST);
+            $url .= "customers/";
+            $customerToken = $request->getData('customer_token');
+            if(isset($customerToken) && $customerToken!=""){
+                $url .= $customerToken;
+                $client->setMethod($client::PUT);
+            }else{
+                $client->setMethod($client::POST);
+            }
+
             $client->setParameterPost('email', $request->getData('email'));
             $client->setParameterPost('card_token', $request->getData('card_token'));
 
