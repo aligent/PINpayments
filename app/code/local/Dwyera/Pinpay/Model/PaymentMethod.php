@@ -53,6 +53,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 if ($customerToken != "") {
                     $customerData->setData('pinpayment_customer_token', $customerToken);
                     $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->save();
                 }
             }else if ($customerToken!="" && $data->getData('card_action') == "update_new_card"){
                 $customerTokenDetails = $this->updateCustomerDetails($data);
@@ -60,6 +61,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
                 if ($customerToken != "") {
                     $customerData->setData('pinpayment_customer_token', $customerToken);
                     $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->save();
                 }
             }
         }
