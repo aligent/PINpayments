@@ -44,30 +44,32 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $customerToken = $data->getCustomerToken();
 
         $customerData = $this->getCustomer();
+        $cardToken = $data->getCardToken();
 
 
-        if($customerTokenizationEnabled && $customerData != false ){
+        if($customerTokenizationEnabled && $customerData != false && $customerData->getData('pinpayment_card_token') != $cardToken){
             if ($data->getData('card_action') == "save_card" &&  $customerToken =="") {
                 $customerTokenDetails = $this->getCustomerToken($data);
                 $customerToken = $customerTokenDetails->getcustomerToken();
                 if ($customerToken != "") {
                     $customerData->setData('pinpayment_customer_token', $customerToken);
                     $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->setData('pinpayment_card_token', $customerTokenDetails->getCardToken());
                     $customerData->save();
                 }
             }else if ($customerToken!="" && $data->getData('card_action') == "update_new_card"){
                 $customerTokenDetails = $this->updateCustomerDetails($data);
                 $customerToken = $customerTokenDetails->getcustomerToken();
                 if ($customerToken != "") {
-                    $customerData->setData('pinpayment_customer_token', $customerToken);
                     $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->setData('pinpayment_card_token', $customerTokenDetails->getCardToken());
                     $customerData->save();
                 }
             }
         }
 
 
-        $cardToken = $data->getCardToken();
+
         $ipAddress = $data->getIpAddress();
         $offlineTransId = $data->getOfflineTransactionId();
         $type = $data->getType();

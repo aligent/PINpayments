@@ -32,3 +32,17 @@ $installer->addAttribute('customer', 'pinpayment_card_display_number', array(
     'user_defined' => true
 ));
 $installer->endSetup();
+
+/* @var $eavConfig Mage_Eav_Model_Config */
+$installer->addAttribute('customer', 'pinpayment_card_token', array(
+    'type'      => 'varchar',
+    'label'     => 'Pinpayment customer card token associated with customer',
+    'input'     => 'text',
+    'visible'   => 0,
+    'required'  => 0,
+    'position'  => 1,
+    'required'  => false,
+    'default'   => 1,
+    'user_defined' => true
+));
+$installer->endSetup();
