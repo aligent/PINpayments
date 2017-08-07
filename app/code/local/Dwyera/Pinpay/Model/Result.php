@@ -167,7 +167,7 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
     }
     public function getCustomerToken()
     {
-        if ($this->msgObj->response->token) {
+        if (isset($this->msgObj->response->token)) {
             return $this->msgObj->response->token;
         } else {
             throw new Dwyera_Pinpay_Model_ResponseParseException;
@@ -176,7 +176,7 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
 
     public function getPrimaryCardDisplayNumber()
     {
-        if ($this->msgObj->response->card->display_number) {
+        if (isset($this->msgObj->response->card->display_number)) {
             return $this->msgObj->response->card->display_number;
         } else {
             throw new Dwyera_Pinpay_Model_ResponseParseException;
@@ -185,7 +185,7 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
 
     public function getCardToken()
     {
-        if ($this->msgObj->response->card->token) {
+        if (isset($this->msgObj->response->card->token)) {
             return $this->msgObj->response->card->token;
         } else {
             throw new Dwyera_Pinpay_Model_ResponseParseException;
