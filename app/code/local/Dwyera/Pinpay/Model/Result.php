@@ -167,29 +167,51 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
     }
     public function getCustomerToken()
     {
-        if (isset($this->msgObj->response->token)) {
-            return $this->msgObj->response->token;
-        } else {
-            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        if($this->isResponseParamExists()) {
+            if (isset($this->msgObj->response->token)) {
+                return $this->msgObj->response->token;
+            } else {
+                throw new Dwyera_Pinpay_Model_ResponseParseException;
+            }
         }
     }
 
     public function getPrimaryCardDisplayNumber()
     {
-        if (isset($this->msgObj->response->card->display_number)) {
-            return $this->msgObj->response->card->display_number;
-        } else {
-            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        if($this->isResponseParamExists("card")){
+            if (isset($this->msgObj->response->card->display_number)) {
+                return $this->msgObj->response->card->display_number;
+            } else {
+                throw new Dwyera_Pinpay_Model_ResponseParseException;
+            }
         }
     }
 
     public function getCardToken()
     {
-        if (isset($this->msgObj->response->card->token)) {
-            return $this->msgObj->response->card->token;
-        } else {
-            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        if($this->isResponseParamExists("card")){
+            if (isset($this->msgObj->response->card->token)) {
+                return $this->msgObj->response->card->token;
+            } else {
+                throw new Dwyera_Pinpay_Model_ResponseParseException;
+            }
         }
+
+    }
+
+    public function isResponseParamExists($path = null){
+        if (isset($this->msgObj->response)) {
+            if($path == "card"){
+                if (isset($this->msgObj->response->card)) {
+                    return true;
+                }
+            }else{
+                //return true if the path is not card and the response exists
+                return true;
+            }
+        }
+        //Throw error if not returned true.
+        throw new Dwyera_Pinpay_Model_ResponseParseException;
     }
 
     /**
