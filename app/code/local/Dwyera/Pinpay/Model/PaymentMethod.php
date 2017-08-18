@@ -178,7 +178,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
      */
     protected function getCustomer() {
 
-        if(empty($email) && Mage::getSingleton('customer/session')->isLoggedIn()) {
+        if(Mage::getSingleton('customer/session')->isLoggedIn()) {
             $customer = Mage::getSingleton("customer/session")->getCustomer();
             return $customer;
         }

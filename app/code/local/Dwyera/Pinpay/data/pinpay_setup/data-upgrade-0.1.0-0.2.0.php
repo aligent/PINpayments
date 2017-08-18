@@ -15,7 +15,7 @@ $installer->addAttribute('customer', 'pinpayment_customer_token', array(
     'required'  => 0,
     'position'  => 1,
     'required'  => false,
-    'default'   => 1,
+    'default'   => null,
     'user_defined' => true
 ));
 
@@ -28,7 +28,7 @@ $installer->addAttribute('customer', 'pinpayment_card_display_number', array(
     'required'  => 0,
     'position'  => 1,
     'required'  => false,
-    'default'   => 1,
+    'default'   => null,
     'user_defined' => true
 ));
 $installer->endSetup();
@@ -42,7 +42,7 @@ $installer->addAttribute('customer', 'pinpayment_card_token', array(
     'required'  => 0,
     'position'  => 1,
     'required'  => false,
-    'default'   => 1,
+    'default'   => null,
     'user_defined' => true
 ));
 $installer->endSetup();
