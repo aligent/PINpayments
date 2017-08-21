@@ -6,7 +6,16 @@ $_form = $this;
 $_code = $_form->getMethodCode();
 $_method = $_form->getMethod();
 $_billingAddress = $this->getBillingAddress();
-
+$pinpaymentCustomerToken = "";
+if(Mage::getSingleton('customer/session')->isLoggedIn() && $this->iscustomerTokenizationEnabled()){
+    $customer_data = Mage::getSingleton('customer/session')->getCustomer();
+    $pinpaymentCustomerToken = $customer_data->getData('pinpayment_customer_token');
+    $pinpaymentCardDisplayNumber = $customer_data->getData('pinpayment_card_display_number');
+}
+$isPinpaymentCustomerUseExisting = false;
+if($pinpaymentCustomerToken != "") {
+    $isPinpaymentCustomerUseExisting = true;
+}
 ?>
 
 
@@ -14,26 +23,47 @@ $_billingAddress = $this->getBillingAddress();
 <ul class="form-list" id="payment_form_<?php echo $_code ?>" style="display:none;">
     <input type="hidden" value="" id="<?php echo $_code ?>_card_token" name="payment[card_token]"/>
     <input type="hidden" value="" id="<?php echo $_code ?>_ip_address" name="payment[ip_address]"/>
+    <input type="hidden" value="" id="<?php echo $_code ?>_card_action" name="payment[card_action]"/>
+    <input type="hidden" value="<?php echo isset($pinpaymentCustomerToken)? $pinpaymentCustomerToken:"" ?>" id="<?php echo $_code ?>_customer_token" name="payment[customer_token]"/>
 
-    <li>
+
+    <?php if ($this->iscustomerTokenizationEnabled()): ?>
+        <?php if($isPinpaymentCustomerUseExisting): ?>
+            <li>
+                <div class="input-box">
+                    <input type="radio" name="card_details" class="js-card_details" id="<?php echo $_code ?>_use_existing_card" value="true" checked="checked"> Use saved card details - <?php echo $pinpaymentCardDisplayNumber;?><br>
+                    <input type="radio" name="card_details" class="js-card_details" id="<?php echo $_code ?>_update_new_card" value="true"> Update and pay with new details. <br>
+                </div>
+            </li>
+        <?php else:?>
+            <li>
+                <div class="input-box">
+                    <input type="radio" id="<?php echo $_code ?>_save_card" value="true"> Save credit card details<br>
+                </div>
+            </li>
+        <?php endif; ?>
+    <?php endif;?>
+
+
+    <li class="js-card_details_rows"<?php if($isPinpaymentCustomerUseExisting): ?> style="display: none"<?php endif; ?>>
         <label for="<?php echo $_code ?>_cc_owner" class="required"><em>*</em><?php echo $this->__('Name on Card') ?></label>
         <div class="input-box">
-            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="input-text required-entry" id="<?php echo $_code ?>_cc_owner" value="<?php echo $this->escapeHtml($this->getInfoData('cc_owner')) ?>" />
+            <input type="text" title="<?php echo $this->__('Name on Card') ?>" class="input-text <?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry" id="<?php echo $_code ?>_cc_owner" value="<?php echo $this->escapeHtml($this->getInfoData('cc_owner')) ?>"<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?> />
         </div>
     </li>
 
-    <li>
+    <li class="js-card_details_rows"<?php if($isPinpaymentCustomerUseExisting): ?> style="display: none"<?php endif; ?>>
         <label for="<?php echo $_code ?>_cc_number" class="required"><em>*</em><?php echo $this->__('Credit Card Number') ?></label>
         <div class="input-box">
-            <input type="text" id="<?php echo $_code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="required-entry input-text validate-cc-number validate-cc-type" value="" />
+            <input type="text" id="<?php echo $_code ?>_cc_number" title="<?php echo $this->__('Credit Card Number') ?>" class="<?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry input-text validate-cc-number validate-cc-type" value=""<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?> />
         </div>
     </li>
 
     <?php if ($this->isCcTypeEnabled() && $this->isCcTypeDisplayedInFrontend()): ?>
-    <li>
+    <li class="js-card_details_rows"<?php if($isPinpaymentCustomerUseExisting): ?> style="display: none"<?php endif; ?>>
         <label for="<?php echo $_code ?>_cc_type" class="required"><em>*</em><?php echo $this->__('Credit Card Type') ?></label>
         <div class="input-box">
-            <select id="<?php echo $_code ?>_cc_type" name="payment[cc_type]" class="required-entry validate-cc-type-select">
+            <select id="<?php echo $_code ?>_cc_type" name="payment[cc_type]" class="<?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry validate-cc-type-select"<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?>>
                 <option value=""><?php echo $this->__('--Please Select--')?></option>
                 <?php $_ccType = $this->getInfoData('cc_type') ?>
                 <?php foreach ($this->getCcAvailableTypes() as $_typeCode => $_typeName): ?>
@@ -44,11 +74,11 @@ $_billingAddress = $this->getBillingAddress();
     </li>
     <?php endif;?>
 
-    <li id="<?php echo $_code ?>_cc_type_exp_div">
+    <li id="<?php echo $_code ?>_cc_type_exp_div" class="js-card_details_rows"<?php if($isPinpaymentCustomerUseExisting): ?> style="display: none"<?php endif; ?>>
         <label for="<?php echo $_code ?>_expiration" class="required"><em>*</em><?php echo $this->__('Expiration Date') ?></label>
         <div class="input-box">
             <div class="v-fix">
-                <select id="<?php echo $_code ?>_expiration" class="month validate-cc-exp required-entry">
+                <select id="<?php echo $_code ?>_expiration" class="month validate-cc-exp <?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry"<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?>>
                     <?php $_ccExpMonth = $this->getInfoData('cc_exp_month') ?>
                     <?php foreach ($this->getCcMonths() as $k=>$v): ?>
                         <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpMonth): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
@@ -57,7 +87,7 @@ $_billingAddress = $this->getBillingAddress();
             </div>
             <div class="v-fix">
                 <?php $_ccExpYear = $this->getInfoData('cc_exp_year') ?>
-                <select id="<?php echo $_code ?>_expiration_yr" class="year required-entry">
+                <select id="<?php echo $_code ?>_expiration_yr" class="year <?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry"<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?>>
                     <?php foreach ($this->getCcYears() as $k=>$v): ?>
                         <option value="<?php echo $k?$k:'' ?>"<?php if($k==$_ccExpYear): ?> selected="selected"<?php endif ?>><?php echo $v ?></option>
                     <?php endforeach ?>
@@ -66,11 +96,11 @@ $_billingAddress = $this->getBillingAddress();
         </div>
     </li>
 
-    <li id="<?php echo $_code ?>_cc_type_cvv_div">
+    <li id="<?php echo $_code ?>_cc_type_cvv_div" class="js-card_details_rows"<?php if($isPinpaymentCustomerUseExisting): ?> style="display: none"<?php endif; ?>>
         <label for="<?php echo $_code ?>_cc_cid" class="required"><em>*</em><?php echo $this->__('Card Verification Number') ?></label>
         <div class="input-box">
             <div class="v-fix">
-                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv required-entry validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" value="" />
+                <input type="text" title="<?php echo $this->__('Card Verification Number') ?>" class="input-text cvv <?php if($isPinpaymentCustomerUseExisting): ?>original-<?php endif; ?>required-entry validate-cc-cvn" id="<?php echo $_code ?>_cc_cid" value=""<?php if($isPinpaymentCustomerUseExisting): ?> disabled="disabled"<?php endif; ?> />
             </div>
             <a href="#" class="cvv-what-is-this"><?php echo $this->__('What is this?') ?></a>
         </div>
@@ -132,6 +162,27 @@ $_billingAddress = $this->getBillingAddress();
 </div>
 
 <script type="text/javascript">
+    $('payment_form_<?php echo $_code ?>').on('change', '.js-card_details', function(event) {
+        var cssSelector = '#payment_form_<?php echo $_code ?> .required-entry, #payment_form_<?php echo $_code ?> .original-required-entry';
+        if (event.target.id == 'pinpay_use_existing_card') {
+            $$(cssSelector).each(function (requiredElement) {
+                if (!requiredElement.hasClassName('original-required-entry')) {
+                    requiredElement.addClassName('original-required-entry').removeClassName('required-entry');
+                    requiredElement.setAttribute('disabled', 'disabled');
+                };
+            });
+            $$('.js-card_details_rows').invoke('hide');
+        } else {
+            $$(cssSelector).each(function (requiredElement) {
+                if (requiredElement.hasClassName('original-required-entry')) {
+                    requiredElement.addClassName('required-entry').removeClassName('original-required-entry');
+                    requiredElement.removeAttribute('disabled');
+                };
+            });
+            $$('.js-card_details_rows').invoke('show');
+        }
+    });
+
     //<![CDATA[
     var Pinpay = Class.create({
 
@@ -152,27 +203,43 @@ $_billingAddress = $this->getBillingAddress();
             }.bind(this));
         },
         validatePinPayForm: function() {
-            var validator = new Validation(payment.form);
-            if (!validator.validate()) {
-                return;
+            var customer_token = $('<?php echo $_code ?>_customer_token').value;
+            if($('<?php echo $_code ?>_use_existing_card') && $('<?php echo $_code ?>_use_existing_card').checked === true ){
+                checkout.setLoadWaiting(false);
+
+                var use_existing_card = $('<?php echo $_code ?>_card_action');
+                use_existing_card.value = "use_existing_card";
+
+                var customer = $('<?php echo $_code ?>_customer_token');
+                customer.value = customer_token;
+
+                var ip = $('<?php echo $_code ?>_ip_address');
+                this.ip_address = "<?php echo Mage::helper('core/http')->getRemoteAddr(true); ?>";
+                ip.value = this.ip_address;
+
+                payment.save(true);
+            } else {
+                var validator = new Validation(payment.form);
+                if (!validator.validate()) {
+                    return;
+                }
+
+                var card = {
+                    number: $('<?php echo $_code ?>_cc_number').value,
+                    name: $('<?php echo $_code ?>_cc_owner').value,
+                    expiry_month: $('<?php echo $_code ?>_expiration').value,
+                    expiry_year: $('<?php echo $_code ?>_expiration_yr').value,
+                    cvc: $('<?php echo $_code ?>_cc_cid').value,
+                    address_line1: $('<?php echo $_code ?>_address_line1').value,
+                    address_line2: $('<?php echo $_code ?>_address_line2').value,
+                    address_city: $('<?php echo $_code ?>_address_city').value,
+                    address_state: $('<?php echo $_code ?>_address_state').value,
+                    address_postcode: $('<?php echo $_code ?>_address_postcode').value,
+                    address_country: $('<?php echo $_code ?>_address_country').value
+                };
+                checkout.setLoadWaiting('pinpay');
+                Pin.createToken(card, this.handlePinResponse.bind(this));
             }
-
-            var card = {
-                number: $('<?php echo $_code ?>_cc_number').value,
-                name: $('<?php echo $_code ?>_cc_owner').value,
-                expiry_month: $('<?php echo $_code ?>_expiration').value,
-                expiry_year: $('<?php echo $_code ?>_expiration_yr').value,
-                cvc: $('<?php echo $_code ?>_cc_cid').value,
-                address_line1: $('<?php echo $_code ?>_address_line1').value,
-                address_line2: $('<?php echo $_code ?>_address_line2').value,
-                address_city: $('<?php echo $_code ?>_address_city').value,
-                address_state: $('<?php echo $_code ?>_address_state').value,
-                address_postcode: $('<?php echo $_code ?>_address_postcode').value,
-                address_country: $('<?php echo $_code ?>_address_country').value
-            };
-            checkout.setLoadWaiting('pinpay');
-            Pin.createToken(card, this.handlePinResponse.bind(this));
-
         },
 
         handlePinResponse: function(response) {
@@ -180,6 +247,17 @@ $_billingAddress = $this->getBillingAddress();
                 checkout.setLoadWaiting(false);
                 this.token = response.response.token;
                 this.ip_address = response.ip_address;
+
+                if($('<?php echo $_code ?>_update_new_card') && $('<?php echo $_code ?>_update_new_card').checked == true) {
+                    $('<?php echo $_code ?>_card_action').value = "update_new_card";
+                }
+                if($('<?php echo $_code ?>_save_card') && $('<?php echo $_code ?>_save_card').checked == true) {
+                    $('<?php echo $_code ?>_card_action').value = "save_card";
+                }
+                var customer_token = $('<?php echo $_code ?>_customer_token').value;
+
+                var customer = $('<?php echo $_code ?>_customer_token');
+                customer.value = customer_token;
 
                 var card = $('<?php echo $_code ?>_card_token');
                 card.value = this.token;
