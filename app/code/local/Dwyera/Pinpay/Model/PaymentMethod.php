@@ -54,7 +54,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         /* Comparing the card token with existing token to make sure the following things donot happen
         1. The unnecessary API calls to the Pinpayment API is avoided if the card token is same
          */
-        if($customerTokenizationEnabled && $customerData != false && $customerData->getData('pinpayment_card_token') != $cardToken){
+        if($customerTokenizationEnabled && !$customerData && $customerData->getData('pinpayment_card_token') != $cardToken){
             if ($data->getData('card_action') == "save_card" &&  $customerToken =="") {
                 $customerTokenDetails = $this->getCustomerToken($data);
                 $customerToken = $customerTokenDetails->getcustomerToken();
