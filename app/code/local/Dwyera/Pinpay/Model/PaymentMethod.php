@@ -40,7 +40,8 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
 
         //Check if customer tokenization is enabled.
-        $block = new Dwyera_Pinpay_Block_Form;
+        $vClassName = Mage::getConfig()->getBlockClassName('pinpay/form');
+        $block = new $vClassName();
         $customerTokenizationEnabled = $block->iscustomerTokenizationEnabled();
         $customerToken = $data->getCustomerToken();
 
