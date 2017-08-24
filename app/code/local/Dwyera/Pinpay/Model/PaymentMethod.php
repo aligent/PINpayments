@@ -7,6 +7,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
     const REQUEST_TYPE_CAPTURE_ONLY = 'CAPTURE_ONLY';
 
     const REQUEST_TYPE_REFUND = 'REFUND';
+    const REQUEST_TYPE_CUSTOMER = 'CUSTOMER';
 
     const MAX_REDIRECTS = 0;
 
@@ -38,16 +39,64 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $data = new Varien_Object($data);
         }
 
+        //Check if customer tokenization is enabled.
+        $vClassName = Mage::getConfig()->getBlockClassName('pinpay/form');
+        $block = new $vClassName();
+        $customerTokenizationEnabled = $block->iscustomerTokenizationEnabled();
+        $customerToken = $data->getCustomerToken();
+
+        //To Check if the customer is logged in.
+        $customerData = $this->getCustomer();
+
+        //Get the card Token from data
         $cardToken = $data->getCardToken();
+
+        //Check if customer token is enabled, customer is logged in and the card token is not the same as the one in database.
+        /* Comparing the card token with existing token to make sure the following things donot happen
+        1. The unnecessary API calls to the Pinpayment API is avoided if the card token is same
+         */
+        if($customerTokenizationEnabled && $customerData && $customerData->getData('pinpayment_card_token') != $cardToken){
+            if ($data->getData('card_action') == "save_card" &&  $customerToken =="") {
+                $customerTokenDetails = $this->getCustomerToken($data);
+                $customerToken = $customerTokenDetails->getcustomerToken();
+                if ($customerToken != "") {
+                    //For first time save all details like customer token, display number and card token to database.
+                    $customerData->setData('pinpayment_customer_token', $customerToken);
+                    $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->setData('pinpayment_card_token', $customerTokenDetails->getCardToken());
+                    $customerData->save();
+                }
+            //Update the existing customer token with new card details.
+            }else if ($customerToken!="" && $data->getData('card_action') == "update_new_card"){
+                $customerTokenDetails = $this->updateCustomerDetails($data);
+                $customerToken = $customerTokenDetails->getcustomerToken();
+                if ($customerToken != "") {
+                    $customerData->setData('pinpayment_card_display_number', $customerTokenDetails->getPrimaryCardDisplayNumber());
+                    $customerData->setData('pinpayment_card_token', $customerTokenDetails->getCardToken());
+                    $customerData->save();
+                }
+            }
+        }
+
+
+
         $ipAddress = $data->getIpAddress();
         $offlineTransId = $data->getOfflineTransactionId();
         $type = $data->getType();
-        if (empty($cardToken) || empty($ipAddress)) {
+        
+        //Display error only if either card/customer token is empty. If anyone of them is null, then the IP address should be checked. 
+        //The code will need either cardToken or customerToken for processing transaction. 
+        if ((empty($cardToken) && empty($customerToken)) || empty($ipAddress)) {
             Mage::log('Payment could not be processed. Missing card token or IP', Zend_Log::ERR, self::$logFile);
             Mage::throwException((Mage::helper('pinpay')->__(self::GENERIC_PAYMENT_GATEWAY_ERROR)));
         }
-        // Store the authorised card token and customer IP
-        $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
+        // Store the authorised card token or customer token and customer IP
+        if($customerToken !="" && $customerData!= false && $customerTokenizationEnabled){
+            $this->getInfoInstance()->setAdditionalInformation("customer_token", $customerToken);
+        }else{
+            $this->getInfoInstance()->setAdditionalInformation("card_token", $data->getCardToken());
+        }
+
         $this->getInfoInstance()->setAdditionalInformation("ip_address", $data->getIpAddress());
         $this->getInfoInstance()->setData("cc_type", $data->getCcType());
 
@@ -75,6 +124,67 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         }
 
         return $this;
+    }
+
+
+    /**
+     * @param $data
+     * @return Dwyera_Pinpay_Model_Result
+     * 
+     * Using this function to get the customer token and then use the customer token for future purchases. 
+     */
+    public function getCustomerToken($data){
+        $request =  $this->_buildCustomerRequest($data);
+        $httpResponse = $this->_postRequest($request, self::REQUEST_TYPE_CUSTOMER);
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        return $result;
+    }
+
+    /**
+     * @param $data
+     * @return Dwyera_Pinpay_Model_Result
+     *
+     * Use this function to update the primary card using new card token
+     */
+    public function updateCustomerDetails($data){
+        $request =  $this->_buildCustomerRequest($data, true);
+        $httpResponse = $this->_postRequest($request, self::REQUEST_TYPE_CUSTOMER);
+        $result = Mage::getModel("pinpay/result", $httpResponse);
+
+        return $result;
+    }
+
+
+    /**
+     * @param $data
+     * @return Dwyera_Pinpay_Model_Request
+     * 
+     * This function is used to build the customer request for API call to get the customer token .
+     */
+    protected function _buildCustomerRequest($data, $customer_token=false) {
+        $request = Mage::getModel('pinpay/request');
+        $request->setEmail($this->getCustomerEmail());
+        $request->setCardToken($data->getData('card_token'));
+        if($customer_token){
+            $request->setCustomerToken($data->getData('customer_token'));
+        }
+        return $request;
+    }
+
+    /**
+     * @return bool|Mage_Customer_Model_Customer
+     * 
+     * This just returns customer data if they are logged in. 
+     */
+    protected function getCustomer() {
+
+        if(Mage::getSingleton('customer/session')->isLoggedIn()) {
+            $customer = Mage::getSingleton("customer/session")->getCustomer();
+            return $customer;
+        }
+        return false;
+
     }
 
     /**
@@ -230,8 +340,15 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request->setEmail($email)->
             setAmount($request::getAmountInCents($amount))->
             setDescription("Quote #:" . $payment->getOrder()->getRealOrderId())->
-            setCardToken($payment->getAdditionalInformation('card_token'))->
             setIpAddress($payment->getAdditionalInformation('ip_address'));
+
+        //Consider card token only if the customer token is not present. 
+        if($payment->getAdditionalInformation("customer_token")!=""){
+            $request->setCustomerToken($payment->getAdditionalInformation("customer_token"));
+        }else{
+            $request->setCardToken($payment->getAdditionalInformation("card_token"));
+        }
+
 
         // Set currency based on order
         $request->setCurrency($payment->getOrder()->getBaseCurrencyCode());
@@ -256,7 +373,7 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
         $request->setChargeToken($payment->getCcTransId());
         return $request;
     }
-
+    
     /**
      * Send request with new payment to PinPayments gateway
      *
@@ -413,6 +530,24 @@ class Dwyera_Pinpay_Model_PaymentMethod extends Mage_Payment_Model_Method_Abstra
             $url .= "charges/" . $request->getChargeToken() . "/refunds";
             $client->setMethod($client::POST);
             $client->setParameterPost('amount', $request->getAmount());
+        } else if($requestType == self::REQUEST_TYPE_CUSTOMER){
+            
+            //If the request type is customer, then we will need to send email and card token as post parameters to receive customer token back. 
+            $url .= "customers/";
+            $customerToken = $request->getData('customer_token');
+            
+            //If customer token is already present, then we need to update the values using "PUT" method
+            //If the customer token is not existing, then we need to "POST" all details to API
+            if(isset($customerToken) && $customerToken!=""){
+                $url .= $customerToken;
+                $client->setMethod($client::PUT);
+            }else{
+                $client->setMethod($client::POST);
+            }
+
+            $client->setParameterPost('email', $request->getData('email'));
+            $client->setParameterPost('card_token', $request->getData('card_token'));
+
         } else {
             throw new InvalidArgumentException("Invalid request type of $requestType");
         }

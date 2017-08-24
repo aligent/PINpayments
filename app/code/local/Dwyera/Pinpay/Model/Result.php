@@ -165,6 +165,35 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
             throw new Dwyera_Pinpay_Model_ResponseParseException;
         }
     }
+    public function getCustomerToken()
+    {
+        return $this->isResponseParamExists("token");
+    }
+
+    public function getPrimaryCardDisplayNumber()
+    {
+        return $this->isResponseParamExists("card","display_number");
+    }
+
+    public function getCardToken()
+    {
+        return $this->isResponseParamExists("card","token");
+    }
+
+    public function isResponseParamExists($level1,$level2 = null){
+        $value = null;
+        if (isset($this->msgObj->response)
+        && isset($this->msgObj->response->$level1)) {
+            $value = $this->msgObj->response->$level1;
+            if ($level2){
+                $value = isset($value->$level2) ? $value->$level2 : null;
+            }
+        }
+        if (is_null($value)){
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+        return $value;
+    }
 
     /**
      * Similar to get getResponseToken but skip check success response

@@ -99,4 +99,11 @@ class Dwyera_Pinpay_Block_Form extends Mage_Payment_Block_Form_Cc
         // Need to check store_id of current quote
         return Mage::getStoreConfigFlag('payment/pinpay/cctypes_backend_enabled', $this->_getQuoteStoreId());
     }
+
+    public function iscustomerTokenizationEnabled()
+    {
+        // check where is the order being created
+        return Mage::getStoreConfigFlag('payment/pinpay/customer_tokenization', $this->_getQuoteStoreId());
+    }
+
 }
