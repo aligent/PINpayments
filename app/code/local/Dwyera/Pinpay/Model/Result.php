@@ -167,51 +167,32 @@ class Dwyera_Pinpay_Model_Result extends Varien_Object
     }
     public function getCustomerToken()
     {
-        if($this->isResponseParamExists()) {
-            if (isset($this->msgObj->response->token)) {
-                return $this->msgObj->response->token;
-            } else {
-                throw new Dwyera_Pinpay_Model_ResponseParseException;
-            }
-        }
+        return $this->isResponseParamExists("token");
     }
 
     public function getPrimaryCardDisplayNumber()
     {
-        if($this->isResponseParamExists("card")){
-            if (isset($this->msgObj->response->card->display_number)) {
-                return $this->msgObj->response->card->display_number;
-            } else {
-                throw new Dwyera_Pinpay_Model_ResponseParseException;
-            }
-        }
+        return $this->isResponseParamExists("card","display_number");
     }
 
     public function getCardToken()
     {
-        if($this->isResponseParamExists("card")){
-            if (isset($this->msgObj->response->card->token)) {
-                return $this->msgObj->response->card->token;
-            } else {
-                throw new Dwyera_Pinpay_Model_ResponseParseException;
-            }
-        }
-
+        return $this->isResponseParamExists("card","token");
     }
 
-    public function isResponseParamExists($path = null){
-        if (isset($this->msgObj->response)) {
-            if($path == "card"){
-                if (isset($this->msgObj->response->card)) {
-                    return true;
-                }
-            }else{
-                //return true if the path is not card and the response exists
-                return true;
+    public function isResponseParamExists($level1,$level2 = null){
+        $value = null;
+        if (isset($this->msgObj->response)
+        && isset($this->msgObj->response->$level1)) {
+            $value = $this->msgObj->response->$level1;
+            if ($level2){
+                $value = isset($value->$level2) ? $value->$level2 : null;
             }
         }
-        //Throw error if not returned true.
-        throw new Dwyera_Pinpay_Model_ResponseParseException;
+        if (is_null($value)){
+            throw new Dwyera_Pinpay_Model_ResponseParseException;
+        }
+        return $value;
     }
 
     /**
